@@ -5,10 +5,14 @@ use crate::{
 };
 use crate::slice_is_empty;
 use std::borrow::Cow;
-use serde::Serialize as Ser;
+use serde::{
+    Serialize as Ser,
+    Deserialize as Deser
+};
+use syndebug::SynDebug;
 
 
-#[derive(Clone, Ser, Debug)]
+#[derive(Clone, Ser, Deser, Debug, SynDebug)]
 pub struct Dialog {
     #[serde(flatten)]
     pub kind      : DialogKind,
@@ -24,20 +28,20 @@ pub struct Dialog {
     pub after     : DialogAfterAction
 }
 
-#[derive(Clone, Ser, Debug)]
+#[derive(Clone, Ser, Deser, Debug, SynDebug)]
 #[serde(tag = "type")]
 pub enum DialogKind {
-    #[serde(rename = "minecraft:notice")]
+    #[serde(rename = "minecraft:notice", alias = "notice")]
     Notice {
         #[serde(skip_serializing_if = "Option::is_none")]
         action : Option<DialogButton>
     },
-    #[serde(rename = "minecraft:confirmation")]
+    #[serde(rename = "minecraft:confirmation", alias = "confirmation")]
     Confirmation {
         yes : DialogButton,
         no  : DialogButton
     },
-    #[serde(rename = "minecraft:multi_action")]
+    #[serde(rename = "minecraft:multi_action", alias = "multi_action")]
     MultiAction {
         actions : Cow<'static, [DialogButton]>,
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -45,7 +49,7 @@ pub enum DialogKind {
         #[serde(rename = "exit_action", skip_serializing_if = "Option::is_none")]
         exit    : Option<DialogButton>
     },
-    #[serde(rename = "minecraft:server_links")]
+    #[serde(rename = "minecraft:server_links", alias = "server_links")]
     ServerLinks {
         #[serde(rename = "exit_action", skip_serializing_if = "Option::is_none")]
         exit         : Option<DialogButton>,
@@ -54,7 +58,7 @@ pub enum DialogKind {
         #[serde(skip_serializing_if = "Option::is_none")]
         button_width : Option<u32>
     },
-    #[serde(rename = "minecraft:dialog_list")]
+    #[serde(rename = "minecraft:dialog_list", alias = "dialog_list")]
     DialogList {
         dialogs      : Cow<'static, [Dialog]>,
         #[serde(rename = "exit_action", skip_serializing_if = "Option::is_none")]
@@ -66,7 +70,7 @@ pub enum DialogKind {
     }
 }
 
-#[derive(Clone, Ser, Debug)]
+#[derive(Clone, Ser, Deser, Debug, SynDebug)]
 pub struct DialogButton {
     pub label   : Text,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -76,16 +80,16 @@ pub struct DialogButton {
     pub action  : Action
 }
 
-#[derive(Clone, Ser, Debug)]
+#[derive(Clone, Ser, Deser, Debug, SynDebug)]
 #[serde(tag = "type")]
 pub enum DialogBody {
-    #[serde(rename = "minecraft:plain_message")]
+    #[serde(rename = "minecraft:plain_message", alias = "plain_message")]
     Plain {
         contents : Text,
         #[serde(skip_serializing_if = "Option::is_none")]
         width    : Option<u32>
     },
-    #[serde(rename = "minecraft:item")]
+    #[serde(rename = "minecraft:item", alias = "item")]
     Item {
         stack       : ItemStack,
         description : DialogItemBodyDesc,
@@ -100,14 +104,14 @@ pub enum DialogBody {
     }
 }
 
-#[derive(Clone, Ser, Debug)]
+#[derive(Clone, Ser, Deser, Debug, SynDebug)]
 pub struct DialogItemBodyDesc {
     pub contents : Text,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub width    : Option<u32>
 }
 
-#[derive(Clone, Ser, Debug)]
+#[derive(Clone, Ser, Deser, Debug, SynDebug)]
 pub struct DialogInput {
     #[serde(flatten)]
     pub kind  : DialogInputKind,
@@ -115,10 +119,10 @@ pub struct DialogInput {
     pub label : Text
 }
 
-#[derive(Clone, Ser, Debug)]
+#[derive(Clone, Ser, Deser, Debug, SynDebug)]
 #[serde(tag = "type")]
 pub enum DialogInputKind {
-    #[serde(rename = "minecraft:text")]
+    #[serde(rename = "minecraft:text", alias = "text")]
     Text {
         #[serde(skip_serializing_if = "Option::is_none")]
         width         : Option<u32>,
@@ -128,20 +132,20 @@ pub enum DialogInputKind {
         max_len       : u32,
         multiline     : DialogTextInputMultiline
     },
-    #[serde(rename = "minecraft:boolean")]
+    #[serde(rename = "minecraft:boolean", alias = "boolean")]
     Boolean {
         initial  : bool,
         on_true  : Cow<'static, str>,
         on_false : Cow<'static, str>
     },
-    #[serde(rename = "minecraft:single_option")]
+    #[serde(rename = "minecraft:single_option", alias = "single_option")]
     SingleOption {
         label_visible : bool,
         #[serde(skip_serializing_if = "Option::is_none")]
         width         : Option<u32>,
         options       : Cow<'static, [DialogInputOption]>
     },
-    #[serde(rename = "minecraft:number_range")]
+    #[serde(rename = "minecraft:number_range", alias = "number_range")]
     NumberRange {
         label_format : Cow<'static, str>,
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -156,7 +160,7 @@ pub enum DialogInputKind {
     }
 }
 
-#[derive(Clone, Ser, Debug)]
+#[derive(Clone, Ser, Deser, Debug, SynDebug)]
 pub struct DialogTextInputMultiline {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_lines : Option<u32>,
@@ -164,14 +168,14 @@ pub struct DialogTextInputMultiline {
     pub height    : Option<u32>
 }
 
-#[derive(Clone, Ser, Debug)]
+#[derive(Clone, Ser, Deser, Debug, SynDebug)]
 pub struct DialogInputOption {
     pub id      : String,
     pub display : Text,
     pub initial : bool
 }
 
-#[derive(Clone, Ser, Debug)]
+#[derive(Clone, Ser, Deser, Debug, SynDebug)]
 pub enum DialogAfterAction {
     #[serde(rename = "close")]
     Close,

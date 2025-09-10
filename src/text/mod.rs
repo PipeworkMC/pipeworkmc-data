@@ -3,56 +3,91 @@ use crate::{
     colour::{ Rgb, Argb },
     ident::Ident
 };
+use crate::slice_is_empty;
 use core::{
     mem,
     ops::{ Add, AddAssign }
 };
 use std::borrow::Cow;
+use serde::{
+    Serialize as Ser,
+    Deserialize as Deser
+};
+use syndebug::SynDebug;
 
 
 mod fmt;
 mod ser;
 
 
-#[derive(Clone, Debug)]
+#[derive(Ser, Clone, Debug, SynDebug)]
+#[serde(transparent)]
 pub struct Text {
     pub components : Cow<'static, [TextComponent]>
 }
 
-#[derive(Clone, Debug)]
+// impl Ser for Text { // TODO FIXME: Text serialiser
+//     fn serialize<S>(&self, serer : S) -> Result<S::Ok, S::Error>
+//     where
+//         S : serde::Serializer
+//     {
+//         "Text".serialize(serer)
+//     }
+// }
+
+#[derive(Ser, Deser, Clone, Debug, SynDebug)]
+#[serde(into = "ser::ExtraedTextComponent")]
 pub struct TextComponent {
+    #[serde(flatten)]
     pub content : TextContent,
+    #[serde(flatten)]
     pub style   : TextStyle
 }
 
-#[derive(Clone, Debug)]
-pub struct TextStyle {
-    pub colour    : Rgb,
-    pub font      : Option<Ident>,
-    pub bold      : bool,
-    pub italic    : bool,
-    pub underline : bool,
-    pub strike    : bool,
-    pub obfuscate : bool,
-    pub shadow    : Option<Argb>,
-    pub insertion : Option<Cow<'static, str>>,
-    pub on_click  : Option<Action>,
-    pub tooltip   : Option<Text>
-}
-
-#[derive(Clone, Debug)]
+#[derive(Ser, Deser, Clone, Debug, SynDebug)]
+#[serde(untagged)]
 pub enum TextContent {
     Literal {
         text : Cow<'static, str>
     },
     Translate {
+        #[serde(rename = "translate")]
         key      : Cow<'static, str>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         fallback : Option<Cow<'static, str>>,
+        #[serde(skip_serializing_if = "slice_is_empty", default)]
         with     : Cow<'static, [Text]>
     },
     Keybind {
+        #[serde(rename = "keybind")]
         id : Cow<'static, str>
     }
+}
+
+#[derive(Ser, Deser, Clone, Debug, SynDebug)]
+pub struct TextStyle {
+    #[serde(rename = "color", serialize_with = "Rgb::to_hex", deserialize_with = "Rgb::from_hex_or_name")]
+    pub colour    : Rgb,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub font      : Option<Ident>,
+    #[serde(default)]
+    pub bold      : bool,
+    #[serde(default)]
+    pub italic    : bool,
+    #[serde(rename = "underlined", default)]
+    pub underline : bool,
+    #[serde(rename = "strikethrough", default)]
+    pub strike    : bool,
+    #[serde(rename = "obfuscated", default)]
+    pub obfuscate : bool,
+    #[serde(rename = "shadow_color", skip_serializing_if = "Option::is_none")]
+    pub shadow    : Option<Argb>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub insertion : Option<Cow<'static, str>>,
+    #[serde(rename = "click_event", skip_serializing_if = "Option::is_none")]
+    pub on_click  : Option<Action>,
+    #[serde(rename = "hover_event", skip_serializing_if = "Option::is_none", serialize_with = "ser::ser_hover_event_tooltip", deserialize_with = "ser::deser_hover_event_tooltip", default)]
+    pub tooltip   : Option<Text>
 }
 
 

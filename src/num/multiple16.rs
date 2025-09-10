@@ -3,8 +3,12 @@ use core::fmt::{ self, Debug, Display, Formatter };
 use core::hint::unreachable_unchecked;
 use serde::{
     Serialize as Ser,
-    Serializer as Serer
+    Serializer as Serer,
+    Deserialize as Deser,
+    Deserializer as Deserer
 };
+use syndebug::SynDebug;
+use disqualified::ShortName;
 
 
 #[repr(transparent)]
@@ -46,6 +50,16 @@ where
     }
 }
 
+impl<T> SynDebug for Multiple16<T>
+where
+    T : Multiple16ablePrimitive
+{
+    #[inline(always)]
+    fn fmt(&self, f : &mut Formatter<'_>, _const_like : bool) -> fmt::Result {
+        write!(f, "Multiple16::<{}>::new({:?}).unwrap()", ShortName::of::<T>(), self.0)
+    }
+}
+
 impl<T> Ser for Multiple16<T>
 where
     T : Multiple16ablePrimitive
@@ -57,12 +71,23 @@ where
     { <T as Ser>::serialize(&self.0, serer) }
 }
 
+impl<'de, T> Deser<'de> for Multiple16<T>
+where
+    T : Multiple16ablePrimitive
+{
+    #[inline(always)]
+    fn deserialize<D>(deserer : D) -> Result<Self, D::Error>
+    where
+        D : Deserer<'de>
+    { Ok(Self(<T as Deser>::deserialize(deserer)?)) }
+}
+
 
 
 #[allow(private_bounds)]
 pub unsafe trait Multiple16ablePrimitive
 where
-    Self : Copy + Ser + Debug + Display + Sized + Sealed
+    for<'de> Self : Copy + Ser + Deser<'de> + Debug + Display + Sized + Sealed
 { }
 
 trait Sealed { }

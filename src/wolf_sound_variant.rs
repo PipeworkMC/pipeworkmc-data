@@ -1,14 +1,19 @@
-use super::RegistryEntryType;
 use crate::{
     ident::Ident,
-    nbt::to_network as to_network_nbt
+    nbt::to_network as to_network_nbt,
+    registry_entry::*
 };
 use std::io::Write;
-use serde::Serialize as Ser;
+use serde::{
+    Serialize as Ser,
+    Deserialize as Deser
+};
+use syndebug::SynDebug;
 
 
-#[derive(Ser, Debug)]
-pub struct WolfSoundVariantRegistryEntry {
+#[derive(Ser, Deser, Debug, SynDebug)]
+#[serde(deny_unknown_fields)]
+pub struct WolfSoundVariant {
     pub hurt_sound    : Ident,
     pub pant_sound    : Ident,
     pub whine_sound   : Ident,
@@ -18,7 +23,11 @@ pub struct WolfSoundVariantRegistryEntry {
 }
 
 
-impl RegistryEntryType for WolfSoundVariantRegistryEntry {
+#[cfg(feature = "generated")]
+include!("../../pipeworkmc-vanilla-datagen/output/generated/wolf_sound_variant.rs");
+
+
+impl RegistryEntryType for WolfSoundVariant {
     const REGISTRY_ID : Ident = Ident::new("minecraft:wolf_sound_variant");
 
     fn to_network_nbt<W>(&self, writer : W) -> bool

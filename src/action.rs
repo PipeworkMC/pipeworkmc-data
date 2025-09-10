@@ -3,76 +3,43 @@ use crate::{
     ident::Ident
 };
 use std::borrow::Cow;
-use serde::ser::{
+use serde::{
     Serialize as Ser,
-    Serializer as Serer,
-    SerializeMap as _
+    Deserialize as Deser
 };
+use syndebug::SynDebug;
 
 
-#[derive(Clone, Debug)]
+#[derive(Ser, Deser, Clone, Debug, SynDebug)]
+#[serde(tag = "action")]
 pub enum Action {
+    #[serde(rename = "open_url")]
     OpenUrl {
         url : Cow<'static, str>
     },
+    #[serde(rename = "run_command")]
     RunCommand {
         command : Cow<'static, str>
     },
+    #[serde(rename = "suggest_command")]
     SuggestCommand {
         command : Cow<'static, str>
     },
+    #[serde(rename = "set_book_page")]
     SetBookPage {
         page : u32
     },
+    #[serde(rename = "set_clipboard")]
     SetClipboard {
         text : Cow<'static, str>
     },
+    #[serde(rename = "show_dialog")]
     ShowDialog {
         dialog : Box<Dialog>
     },
+    #[serde(rename = "custom")]
     Custom {
         id      : Ident,
         payload : String
-    }
-}
-
-impl Ser for Action {
-    fn serialize<S>(&self, serer : S) -> Result<S::Ok, S::Error>
-    where
-        S : Serer
-    {
-        let mut map = serer.serialize_map(Some(2))?;
-        match (self) {
-            Action::OpenUrl { url } => {
-                map.serialize_entry("action", "open_url")?;
-                map.serialize_entry("url", url)?;
-            },
-            Action::RunCommand { command } => {
-                map.serialize_entry("action", "run_command")?;
-                map.serialize_entry("command", command)?;
-            },
-            Action::SuggestCommand { command } => {
-                map.serialize_entry("action", "suggest_command")?;
-                map.serialize_entry("command", command)?;
-            },
-            Action::SetBookPage { page } => {
-                map.serialize_entry("action", "change_page")?;
-                map.serialize_entry("page", page)?;
-            },
-            Action::SetClipboard { text } => {
-                map.serialize_entry("action", "copy_to_clipboard")?;
-                map.serialize_entry("value", text)?;
-            },
-            Action::ShowDialog { dialog } => {
-                map.serialize_entry("action", "show_dialog")?;
-                map.serialize_entry("value", dialog)?;
-            },
-            Action::Custom { id, payload } => {
-                map.serialize_entry("action", "custom")?;
-                map.serialize_entry("id", id)?;
-                map.serialize_entry("payload", payload)?;
-            },
-        }
-        map.end()
     }
 }

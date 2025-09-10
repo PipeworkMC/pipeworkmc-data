@@ -1,20 +1,21 @@
 use pipeworkmc_codec::{
     decode::{
-        PacketDecode,
-        DecodeBuf,
-        string::StringDecodeError
+        string::StringDecodeError, DecodeBuf, PacketDecode
     },
     encode::{
-        PacketEncode,
-        EncodeBuf
+        EncodeBuf, PacketEncode
     }
 };
 use core::fmt::{ self, Display, Debug, Formatter };
 use std::borrow::Cow;
-use serde::ser::{
+use serde::{
     Serialize as Ser,
-    Serializer as Serer
+    Serializer as Serer,
+    Deserialize as Deser,
+    Deserializer as Deserer,
+    de::Error as _
 };
+use syndebug::SynDebug;
 
 
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -34,6 +35,13 @@ impl Debug for TagIdent {
     #[inline]
     fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self.joined)
+    }
+}
+
+impl SynDebug for TagIdent {
+    #[inline]
+    fn fmt(&self, f : &mut Formatter<'_>, _const_like : bool) -> fmt::Result {
+        write!(f, "TagIdent::new({:?})", self.joined)
     }
 }
 
@@ -198,7 +206,14 @@ impl Ser for TagIdent {
     fn serialize<S>(&self, serer : S) -> Result<S::Ok, S::Error>
     where
         S : Serer
-    { serer.serialize_str(self.as_str()) }
+    { self.as_str().serialize(serer) }
+}
+
+impl<'de> Deser<'de> for TagIdent {
+    fn deserialize<D>(deserer : D) -> Result<Self, D::Error>
+    where
+        D : Deserer<'de>
+    { Self::try_from(<String>::deserialize(deserer)?).map_err(D::Error::custom) }
 }
 
 

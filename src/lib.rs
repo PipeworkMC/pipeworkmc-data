@@ -10,28 +10,43 @@
 
 
 pub mod action;
+pub mod banner_pattern;
 pub mod block_pos;
 pub mod bounded_string;
 pub mod box_cow;
+pub mod cat_variant;
 pub mod channel_data;
 pub mod character;
+pub mod chicken_variant;
 pub mod client_info;
 pub mod colour;
+pub mod cow_variant;
+pub mod damage_type;
 pub mod dialog;
+pub mod dimension_type;
+pub mod frog_variant;
 pub mod game_mode;
 pub mod ident;
 pub mod itemstack;
 pub mod light_level;
 pub mod nbt;
 pub mod num;
+pub mod painting_variant;
 pub mod particle;
+pub mod pig_variant;
 pub mod profile;
 pub mod redacted;
 pub mod registry_entry;
 pub mod tag_ident;
 pub mod text;
+pub mod wolf_variant;
+pub mod wolf_sound_variant;
+pub mod worldgen;
 pub use pipeworkmc_codec::uuid;
 pub use pipeworkmc_codec::varint;
+
+pub use syndebug;
+pub use disqualified;
 
 
 #[inline(always)]

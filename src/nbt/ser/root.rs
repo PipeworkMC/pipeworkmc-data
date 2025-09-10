@@ -144,13 +144,15 @@ where
         todo!() // TODO: BArray
     }
 
+    #[inline(always)]
     fn serialize_none(self) -> Result<Self::Ok, Self::Error> {
-        panic!("NBT serialiser does not support `Option`");
+        Ok(())
     }
-    fn serialize_some<T>(self, _ : &T) -> Result<Self::Ok, Self::Error>
+    #[inline(always)]
+    fn serialize_some<T>(self, v : &T) -> Result<Self::Ok, Self::Error>
     where
         T : ?Sized + Ser
-    { panic!("NBT serialiser does not support `Option`"); }
+    { v.serialize(self) }
 
     fn serialize_unit(self) -> Result<Self::Ok, Self::Error> {
         panic!("NBT serialiser does not support `()`");
@@ -176,7 +178,8 @@ where
         _value : &T,
     ) -> Result<Self::Ok, Self::Error>
     where
-        T: ?Sized + Ser {
+        T : ?Sized + Ser
+    {
         todo!()
     }
 
@@ -188,7 +191,8 @@ where
         _value         : &T,
     ) -> Result<Self::Ok, Self::Error>
     where
-        T: ?Sized + Ser {
+        T : ?Sized + Ser
+    {
         todo!()
     }
 

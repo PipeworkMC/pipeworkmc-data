@@ -1,11 +1,15 @@
 use core::{
+    fmt::{ self, Formatter },
     hint::unreachable_unchecked,
     ops::Deref
 };
 use serde::{
     Serialize as Ser,
-    Serializer as Serer
+    Serializer as Serer,
+    Deserialize as Deser,
+    Deserializer as Deserer
 };
+use syndebug::SynDebug;
 
 
 #[derive(Debug, Clone)]
@@ -46,6 +50,38 @@ where
 }
 
 
+impl<T> SynDebug for BoxCow<'_, T>
+where
+            T      : Clone + ?Sized,
+    for<'l> &'l T  : SynDebug,
+            Box<T> : SynDebug
+{
+    fn fmt(&self, f : &mut Formatter<'_>, const_like : bool) -> fmt::Result {
+        if (const_like) {
+            write!(f, "BoxCow::Borrowed( ")?;
+            <&T as SynDebug>::fmt(&&**self, f, true)?;
+            write!(f, ", )")?;
+            Ok(())
+        } else {
+            match (self) {
+                Self::Borrowed(inner) => {
+                    write!(f, "BoxCow::Borrowed( ")?;
+                    <&T as SynDebug>::fmt(inner, f, false)?;
+                    write!(f, ", )")?;
+                    Ok(())
+                },
+                Self::Owned(inner) => {
+                    write!(f, "BoxCow::Owned( ")?;
+                    <Box<T> as SynDebug>::fmt(inner, f, false)?;
+                    write!(f, ", )")?;
+                    Ok(())
+                }
+            }
+        }
+    }
+}
+
+
 impl<'l, B> Deref for BoxCow<'l, B>
 where
     B : Clone + ?Sized + 'l
@@ -64,7 +100,7 @@ where
 
 impl<'l, B> Ser for BoxCow<'l, B>
 where
-            B     : Clone + ?Sized + 'l,
+            B     : Clone + ?Sized,
     for<'k> &'k B : Ser
 {
     #[inline]
@@ -72,4 +108,16 @@ where
     where
         S : Serer
     { self.deref().serialize(serer) }
+}
+
+impl<'de, 'l, B> Deser<'de> for BoxCow<'l, B>
+where
+    B      : Clone + ?Sized,
+    Box<B> : Deser<'de>
+{
+    #[inline]
+    fn deserialize<D>(deserer : D) -> Result<Self, D::Error>
+    where
+        D : Deserer<'de>
+    { Ok(Self::Owned(Box::<B>::deserialize(deserer)?)) }
 }

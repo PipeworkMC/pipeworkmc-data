@@ -3,6 +3,9 @@ name    = "pipeworkmc-data"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+generated = [ ]
+
 [lints.rust]
 unused_parens = "allow"
 
@@ -10,21 +13,27 @@ unused_parens = "allow"
 [dependencies.pipeworkmc-codec]
 path = "../pipeworkmc-codec"
 
-
 # ECS
 
 [dependencies.bevy_ecs]
 version = "0.16"
-
 
 # Serialisation & Zeroise
 
 [dependencies.cesu8]
 version = "1.1"
 
+[dependencies.disqualified]
+version = "1.0"
+
 [dependencies.serde]
 version  = "1.0"
 features = [ "derive" ]
+
+[dependencies.syndebug]
+git      = "https://github.com/Totobird-Creations/syndebug"
+branch   = "main"
+features = [ "serde" ]
 
 [dependencies.zeroize]
 version = "1.8"

@@ -120,7 +120,7 @@ impl Rgb {
         while (value > 0) {
             i -= 1;
             let digit = LOWER_HEX_DIGITS[(value % 16) as usize];
-            value = value / 16;
+            value /= 16;
             buf[i] = digit;
         }
         buf[0] = b'#';
@@ -237,7 +237,7 @@ impl Argb {
         while (value > 0) {
             i -= 1;
             let digit = LOWER_HEX_DIGITS[(value % 16) as usize];
-            value = value / 16;
+            value /= 16;
             buf[i] = digit;
         }
         buf[0] = b'#';

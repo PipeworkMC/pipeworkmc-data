@@ -25,12 +25,20 @@ impl From<u32> for CharacterId {
 #[derive(Resource, Default)]
 pub struct NextCharacterId(u32);
 
-impl NextCharacterId {
+impl Iterator for NextCharacterId {
+    type Item = CharacterId;
 
+    #[inline(always)]
+    fn next(&mut self) -> Option<Self::Item> {
+        Some(NextCharacterId::next(self))
+    }
+}
+
+impl NextCharacterId {
+    #[expect(clippy::should_implement_trait)]
     pub fn next(&mut self) -> CharacterId {
         let id = self.0;
         self.0 += 1;
         CharacterId(id)
     }
-
 }

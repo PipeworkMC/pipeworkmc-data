@@ -15,7 +15,7 @@ use syndebug::SynDebug;
 #[derive(Debug, Clone)]
 pub enum BoxCow<'l, B>
 where
-    B : Clone + ?Sized + 'l
+    B : Clone + 'l
 {
     Borrowed(&'l B),
     Owned(Box<B>)
@@ -24,7 +24,7 @@ where
 
 impl<'l, B> BoxCow<'l, B>
 where
-    B : Clone + ?Sized + 'l
+    B : Clone + 'l
 {
 
     pub fn to_mut(&mut self) -> &mut B {
@@ -52,7 +52,7 @@ where
 
 impl<T> SynDebug for BoxCow<'_, T>
 where
-            T      : Clone + ?Sized,
+            T      : Clone,
     for<'l> &'l T  : SynDebug,
             Box<T> : SynDebug
 {
@@ -84,7 +84,7 @@ where
 
 impl<'l, B> Deref for BoxCow<'l, B>
 where
-    B : Clone + ?Sized + 'l
+    B : Clone + 'l
 {
     type Target = B;
 
@@ -100,7 +100,7 @@ where
 
 impl<'l, B> Ser for BoxCow<'l, B>
 where
-            B     : Clone + ?Sized,
+            B     : Clone,
     for<'k> &'k B : Ser
 {
     #[inline]
@@ -112,7 +112,7 @@ where
 
 impl<'de, 'l, B> Deser<'de> for BoxCow<'l, B>
 where
-    B      : Clone + ?Sized,
+    B      : Clone,
     Box<B> : Deser<'de>
 {
     #[inline]

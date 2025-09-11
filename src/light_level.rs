@@ -60,60 +60,70 @@ impl<'de> Deser<'de> for LightLevel {
 
 impl TryFrom<i8> for LightLevel {
     type Error = ();
+    #[inline]
     fn try_from(value : i8) -> Result<Self, Self::Error> {
         Self::new(value.try_into().map_err(|_| ())?).ok_or(())
     }
 }
 impl TryFrom<u8> for LightLevel {
     type Error = ();
+    #[inline(always)]
     fn try_from(value : u8) -> Result<Self, Self::Error> {
-        Self::new(value.try_into().map_err(|_| ())?).ok_or(())
+        Self::new(value).ok_or(())
     }
 }
 impl TryFrom<i16> for LightLevel {
     type Error = ();
+    #[inline]
     fn try_from(value : i16) -> Result<Self, Self::Error> {
         Self::new(value.try_into().map_err(|_| ())?).ok_or(())
     }
 }
 impl TryFrom<u16> for LightLevel {
     type Error = ();
+    #[inline]
     fn try_from(value : u16) -> Result<Self, Self::Error> {
         Self::new(value.try_into().map_err(|_| ())?).ok_or(())
     }
 }
 impl TryFrom<i32> for LightLevel {
     type Error = ();
+    #[inline]
     fn try_from(value : i32) -> Result<Self, Self::Error> {
         Self::new(value.try_into().map_err(|_| ())?).ok_or(())
     }
 }
 impl TryFrom<u32> for LightLevel {
     type Error = ();
+    #[inline]
     fn try_from(value : u32) -> Result<Self, Self::Error> {
         Self::new(value.try_into().map_err(|_| ())?).ok_or(())
     }
 }
 impl TryFrom<i64> for LightLevel {
     type Error = ();
+    #[inline]
     fn try_from(value : i64) -> Result<Self, Self::Error> {
         Self::new(value.try_into().map_err(|_| ())?).ok_or(())
     }
 }
 impl TryFrom<u64> for LightLevel {
     type Error = ();
+    #[inline]
     fn try_from(value : u64) -> Result<Self, Self::Error> {
         Self::new(value.try_into().map_err(|_| ())?).ok_or(())
     }
 }
 impl TryFrom<i128> for LightLevel {
     type Error = ();
+    #[inline]
     fn try_from(value : i128) -> Result<Self, Self::Error> {
         Self::new(value.try_into().map_err(|_| ())?).ok_or(())
     }
 }
 impl TryFrom<u128> for LightLevel {
     type Error = ();
+    #[inline]
     fn try_from(value : u128) -> Result<Self, Self::Error> {
         Self::new(value.try_into().map_err(|_| ())?).ok_or(())
     }

@@ -28,6 +28,7 @@ pub mod frog_variant;
 pub mod game_mode;
 pub mod ident;
 pub mod itemstack;
+pub mod known_pack;
 pub mod light_level;
 pub mod nbt;
 pub mod num;

@@ -40,6 +40,7 @@ pub mod redacted;
 pub mod registry_entry;
 pub mod tag_ident;
 pub mod text;
+pub mod version;
 pub mod wolf_variant;
 pub mod wolf_sound_variant;
 pub mod worldgen;

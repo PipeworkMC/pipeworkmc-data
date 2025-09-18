@@ -1,3 +1,7 @@
+use core::sync::atomic::{
+    AtomicU32,
+    Ordering as AtomicOrdering
+};
 use bevy_ecs::{
     component::Component,
     resource::Resource
@@ -23,7 +27,7 @@ impl From<u32> for CharacterId {
 
 
 #[derive(Resource, Default)]
-pub struct NextCharacterId(u32);
+pub struct NextCharacterId(AtomicU32);
 
 impl Iterator for NextCharacterId {
     type Item = CharacterId;
@@ -36,9 +40,7 @@ impl Iterator for NextCharacterId {
 
 impl NextCharacterId {
     #[expect(clippy::should_implement_trait)]
-    pub fn next(&mut self) -> CharacterId {
-        let id = self.0;
-        self.0 += 1;
-        CharacterId(id)
+    pub fn next(&self) -> CharacterId {
+        CharacterId(self.0.fetch_add(1, AtomicOrdering::Relaxed))
     }
 }

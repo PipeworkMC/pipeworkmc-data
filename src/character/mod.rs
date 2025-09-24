@@ -2,10 +2,17 @@ use core::sync::atomic::{
     AtomicU32,
     Ordering as AtomicOrdering
 };
-use bevy_ecs::{
-    component::Component,
-    resource::Resource
-};
+use bevy_ecs::component::Component;
+
+
+#[cfg(feature = "generated")]
+include!("../../../pipeworkmc-vanilla-datagen/output/generated/entity_type.rs");
+
+mod pos;
+pub use pos::*;
+
+
+static NEXT_CHARACTER_ID : AtomicU32 = AtomicU32::new(0);
 
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Component)]
@@ -15,32 +22,15 @@ impl CharacterId {
 
     pub const ZERO : Self = Self(0);
 
-    pub const fn new(id : u32) -> Self { Self(id) }
+    #[inline(always)]
+    pub fn next() -> Self { Self(NEXT_CHARACTER_ID.fetch_add(1, AtomicOrdering::Relaxed)) }
 
+    #[inline(always)]
     pub const fn as_u32(&self) -> u32 { self.0 }
 
 }
 
-impl From<u32> for CharacterId {
-    fn from(id : u32) -> Self { Self::new(id) }
-}
-
-
-#[derive(Resource, Default)]
-pub struct NextCharacterId(AtomicU32);
-
-impl Iterator for NextCharacterId {
-    type Item = CharacterId;
-
+impl Default for CharacterId {
     #[inline(always)]
-    fn next(&mut self) -> Option<Self::Item> {
-        Some(NextCharacterId::next(self))
-    }
-}
-
-impl NextCharacterId {
-    #[expect(clippy::should_implement_trait)]
-    pub fn next(&self) -> CharacterId {
-        CharacterId(self.0.fetch_add(1, AtomicOrdering::Relaxed))
-    }
+    fn default() -> Self { Self::next() }
 }

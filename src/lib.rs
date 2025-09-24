@@ -10,6 +10,7 @@
 
 
 pub mod action;
+pub mod angle;
 pub mod banner_pattern;
 pub mod block_pos;
 pub mod bounded_string;

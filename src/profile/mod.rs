@@ -15,6 +15,7 @@ mod deser;
 
 
 #[derive(Clone, Component, Debug)]
+#[component(immutable)]
 pub struct AccountProfile {
     pub uuid     : Uuid,
     pub username : BoundedString<16>,
@@ -29,44 +30,58 @@ pub struct AccountProperty {
 }
 
 
+impl AccountProfile {
+    #[inline]
+    pub fn new(uuid : Uuid, username : BoundedString<16>, skin : Option<AccountProperty>) -> Self {
+        Self { uuid, username, skin }
+    }
+}
+
+impl AccountProperty {
+    #[inline]
+    pub fn new(value : String, sig : Option<String>) -> Self {
+        Self { value, sig }
+    }
+}
+
+
 unsafe impl PacketEncode for AccountProfile {
 
     fn encode_len(&self) -> usize {
         self.uuid.encode_len()
         + self.username.encode_len()
-        + KeyedAccountProperties {
-            skin : KeyedAccountProperty { key : "textures", property : self.skin.as_ref() }
-        }.encode_len()
+        + KeyedAccountProperties([
+            KeyedAccountProperty { key : "textures", property : self.skin.as_ref() }
+        ]).encode_len()
     }
 
     unsafe fn encode(&self, buf : &mut EncodeBuf) { unsafe {
         self.uuid.encode(buf);
         self.username.encode(buf);
-        KeyedAccountProperties {
-            skin : KeyedAccountProperty { key : "textures", property : self.skin.as_ref() }
-        }.encode(buf);
+        KeyedAccountProperties([
+            KeyedAccountProperty { key : "textures", property : self.skin.as_ref() }
+        ]).encode(buf);
     } }
 
 }
 
 
-struct KeyedAccountProperties<'l> {
-    skin : KeyedAccountProperty<'l>
-}
+struct KeyedAccountProperties<'l> ([KeyedAccountProperty<'l>; 1]);
 
 unsafe impl PacketEncode for KeyedAccountProperties<'_> {
 
     fn encode_len(&self) -> usize {
-        let len = if (self.skin.property.is_some()) { 1 } else { 0 };
-
+        let len = self.0.iter().filter(|p| p.property.is_some()).count();
         VarInt::<u32>(len as u32).encode_len()
-        + self.skin.encode_len()
+        + self.0.iter().map(|p| p.encode_len()).sum::<usize>()
     }
 
     unsafe fn encode(&self, buf : &mut EncodeBuf) { unsafe {
-        let len = if (self.skin.property.is_some()) { 1 } else { 0 };
+        let len = self.0.iter().filter(|p| p.property.is_some()).count();
         VarInt::<u32>(len as u32).encode(buf);
-        self.skin.encode(buf);
+        for p in &self.0 {
+            p.encode(buf);
+        }
     } }
 
 }

@@ -1,7 +1,10 @@
+//! Namespaced resource identifiers.
+
+
 use pipeworkmc_codec::{
     decode::{
         PacketDecode,
-        DecodeBuf,
+        DecodeIter,
         string::StringDecodeError
     },
     encode::{
@@ -21,6 +24,9 @@ use serde::{
 use syndebug::SynDebug;
 
 
+/// A namespaced resource identifier.
+///
+/// [`Ident`]s are used to identify everything from asset locations, channel ids, entity types, etc.
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct Ident {
     joined    : Cow<'static, str>,
@@ -51,16 +57,21 @@ impl SynDebug for Ident {
 
 impl Ident {
 
+    /// Returns the namespace of this identifier.
     #[inline]
     pub fn namespace(&self) -> &str {
+        // SAFETY: `self.split_idx` is always less than `self.joined.len()`.
         unsafe { self.joined.get_unchecked(0..self.split_idx) }
     }
 
+    /// Returns the path of this identifier.
     #[inline]
     pub fn path(&self) -> &str {
+        // SAFETY: `self.split_idx + 1` is always less than `self.joined.len()`.
         unsafe { self.joined.get_unchecked((self.split_idx + 1)..) }
     }
 
+    /// Returns this identifier as a [`&str`](str).
     #[inline(always)]
     pub fn as_str(&self) -> &str { &self.joined }
 
@@ -68,6 +79,15 @@ impl Ident {
 
 impl Ident {
 
+    /// Creates a new identifier from a joined string without checking validity.
+    ///
+    /// ### Safety
+    /// The caller is responsible for ensuring that the given string is a valid identifier:
+    /// - Must only contain ASCII characters.
+    /// - Must contain a single `:` character.
+    /// - Namespaces or path segments.
+    /// - Namespaces and path segments must only contain `[a-z0-9.\-_]` characters.
+    /// - Path segments must be `/`-separated.
     pub unsafe fn new_unchecked<S>(joined : S) -> Self
     where
         S : Into<Cow<'static, str>>
@@ -83,6 +103,10 @@ impl Ident {
         Self { joined, split_idx }
     }
 
+    /// Creates a new identifier from a joined [`&'static str`](str).
+    ///
+    /// ### Panics
+    /// Panics if the given string is not a valid identifier.
     #[track_caller]
     #[inline]
     pub const fn new(s : &'static str) -> Self {
@@ -97,16 +121,25 @@ impl Ident {
         }
     }
 
+    /// Creates a new identifier from a joined [`&'static str`](str),
+    ///  returning an error if it is not a valid identifier.
     #[inline]
     pub const fn new_checked(s : &'static str) -> Result<Self, IdentValidateError> {
         match (Self::validate_joined(s)) {
+            // SAFETY: `s` was validated in the line above.
             Ok(split_idx) => Ok(unsafe { Self::new_unchecked_manual(Cow::Borrowed(s), split_idx) }),
             Err(err)      => Err(err)
         }
     }
 
+    /// Creates a new identifier from a separated namespace and path,
+    ///  returning and error if they are not valid parts of an identifier.
     #[inline(always)]
-    pub fn new_from_pair(namespace : &str, path : &str) -> Result<Self, IdentValidateError> {
+    pub fn new_from_pair<N, P>(namespace : N, path : P) -> Result<Self, IdentValidateError>
+    where
+        N : AsRef<str>,
+        P : AsRef<str>
+    {
         Self::try_from((namespace, path,))
     }
 
@@ -169,6 +202,7 @@ impl TryFrom<Cow<'static, str>> for Ident {
     #[inline]
     fn try_from(s : Cow<'static, str>) -> Result<Self, Self::Error> {
         let split_idx = Self::validate_joined(&s)?;
+        // SAFETY: `s` was validated in the line above.
         Ok(unsafe { Self::new_unchecked_manual(s, split_idx) })
     }
 }
@@ -218,10 +252,11 @@ impl<'de> Deser<'de> for Ident {
 impl PacketDecode for Ident {
     type Error = IdentDecodeError;
 
-    fn decode(buf : &mut DecodeBuf<'_>)
-        -> Result<Self, Self::Error>
+    fn decode<I>(iter : &mut DecodeIter<I>) -> Result<Self, Self::Error>
+    where
+        I : ExactSizeIterator<Item = u8>
     {
-        let s = <String>::decode(buf).map_err(IdentDecodeError::String)?;
+        let s = <String>::decode(iter).map_err(IdentDecodeError::String)?;
         Self::try_from(s).map_err(IdentDecodeError::Validate)
     }
 }
@@ -241,11 +276,16 @@ unsafe impl PacketEncode for Ident {
 }
 
 
+/// Returned by [`Ident`] constructors when invalid parameters are provided.
 #[derive(Debug)]
 pub enum IdentValidateError {
+    /// The identifier contains non-ASCII characters.
     NotAscii,
+    /// The identifier contains an empty component.
     EmptyComponent,
+    /// The identifier contains an invalid character.
     BadChar(char),
+    /// The identifier is missing a separator (`:`).
     NoSeparator
 }
 impl Display for IdentValidateError {
@@ -257,9 +297,12 @@ impl Display for IdentValidateError {
     } }
 }
 
+/// Returned by packet decoders when an `Ident` was not decoded successfully.
 #[derive(Debug)]
 pub enum IdentDecodeError {
+    /// The read data was not a valid string.
     String(StringDecodeError),
+    /// The string was not a valid identifier.
     Validate(IdentValidateError)
 }
 impl Display for IdentDecodeError {

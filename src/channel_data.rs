@@ -1,3 +1,6 @@
+//! Modded channels for custom data.
+
+
 use crate::ident::{
     Ident,
     IdentDecodeError
@@ -5,7 +8,7 @@ use crate::ident::{
 use pipeworkmc_codec::{
     decode::{
         PacketDecode,
-        DecodeBuf,
+        DecodeIter,
         string::StringDecodeError
     },
     encode::{
@@ -20,13 +23,19 @@ use std::borrow::Cow;
 const CHANNEL_BRAND : Ident = Ident::new("minecraft:brand");
 
 
+/// Custom data sent over modded channels.
 #[derive(Debug)]
 pub enum ChannelData<'l> {
+    /// The `minecraft:brand` channel used by the vanilla game to tell the peer what distribution of the game they are playing on.
     Brand {
+        /// The brand (Vanilla, fabric, forge, etc).
         brand : Cow<'l, str>
     },
+    /// Some other channel unused by the vanilla game.
     Custom {
+        /// The channel ID.
         channel : Ident,
+        /// The payload data.
         data    : Cow<'l, [u8]>
     }
 }
@@ -35,14 +44,15 @@ pub enum ChannelData<'l> {
 impl PacketDecode for ChannelData<'_> {
     type Error = ChannelDataDecodeError;
 
-    fn decode(buf : &mut DecodeBuf<'_>)
-        -> Result<Self, Self::Error>
+    fn decode<I>(iter : &mut DecodeIter<I>) -> Result<Self, Self::Error>
+    where
+        I : ExactSizeIterator<Item = u8>
     {
-        let channel = Ident::decode(buf).map_err(ChannelDataDecodeError::Channel)?;
+        let channel = Ident::decode(iter).map_err(ChannelDataDecodeError::Channel)?;
         Ok(if (channel == CHANNEL_BRAND) {
-            Self::Brand { brand : Cow::Owned(<_>::decode(buf).map_err(ChannelDataDecodeError::Brand)?) }
+            Self::Brand { brand : Cow::Owned(<_>::decode(iter).map_err(ChannelDataDecodeError::Brand)?) }
         } else {
-            Self::Custom { channel, data : Cow::Owned(buf.read_remaining().to_vec()) }
+            Self::Custom { channel, data : Cow::Owned(iter.collect::<Vec<_>>().to_vec()) }
         })
     }
 }
@@ -74,9 +84,12 @@ unsafe impl PacketEncode for ChannelData<'_> {
 }
 
 
+/// Returned by packet decoders when a `ChannelData` was not decoded successfully.
 #[derive(Debug)]
 pub enum ChannelDataDecodeError {
+    /// The channel ID failed to decode.
     Channel(IdentDecodeError),
+    /// A `minecraft:brand` payload failed to decode.
     Brand(StringDecodeError)
 }
 

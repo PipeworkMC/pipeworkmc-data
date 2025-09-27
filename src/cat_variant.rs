@@ -1,3 +1,6 @@
+//! Cat variant registry entries.
+
+
 use crate::{
     ident::Ident,
     nbt::to_network as to_network_nbt,
@@ -12,11 +15,16 @@ use serde::{
 use syndebug::SynDebug;
 
 
+/// A cat variant registry entry.
 #[derive(Ser, Deser, Debug, SynDebug)]
 #[serde(deny_unknown_fields)]
 pub struct CatVariant {
+    /// The resource ID of the texture asset.
     #[serde(rename = "asset_id")]
     pub texture_asset    : Ident,
+    /// Conditions required to spawn a cat.
+    ///
+    /// Unused by pipework.
     #[serde(skip_serializing)]
     pub spawn_conditions : IgnoredAny
 }

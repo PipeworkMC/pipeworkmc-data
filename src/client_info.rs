@@ -1,3 +1,6 @@
+//! Client settings.
+
+
 use crate::{
     bounded_string::{
         BoundedString,
@@ -10,23 +13,33 @@ use crate::{
 };
 use pipeworkmc_codec::decode::{
     PacketDecode,
-    DecodeBuf,
+    DecodeIter,
     IncompleteDecodeError
 };
 use core::fmt::{ self, Debug, Display, Formatter };
 use bevy_ecs::component::Component;
 
 
+/// Client settings.
 #[derive(Clone, Component, Debug)]
 pub struct ClientInfo {
+    /// Selected language code.
     pub locale             : BoundedString<16>,
-    pub view_dist          : u8,
+    /// View distance in chunks.
+    pub view_dist          : u8, // TODO: Make NonZeroU8
+    /// Enabled chat message types.
     pub chat_mode          : ChatMode,
+    /// Whether chat colours are enabled.
     pub chat_colours       : bool,
+    /// Skin layers to display.
     pub skin_layers        : SkinLayers,
+    /// Whether to use left as main hand.
     pub left_handed        : bool,
+    /// Whether text on signs and in book titles are filtered.
     pub text_filtered      : bool,
+    /// Whether this player should be shown in server list.
     pub allow_motd_listing : bool,
+    /// Amount of particles which will be displayed.
     pub particle_status    : ParticleStatus
 }
 impl Default for ClientInfo {
@@ -44,51 +57,80 @@ impl Default for ClientInfo {
 }
 
 
+/// Enable chat message types.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub enum ChatMode {
+    /// Chat is fully enabled.
     Enabled,
+    /// Only command feedback is shown.
     CommandsOnly,
+    /// All chat is hidden.
     Hidden
 }
 
 
+/// Skin layers to display.
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(transparent)]
 pub struct SkinLayers(u8);
 impl SkinLayers {
 
+    /// All skin layers shown.
     pub const ALL  : Self = Self(0b01111111);
+    /// No skin layers shown.
     pub const NONE : Self = Self(0b00000000);
 
+    /// Return the inner value as a primitive type.
     #[inline(always)]
     pub const fn as_byte(&self) -> u8 { self.0 }
 
+    /// The cape byte flag.
     pub const CAPE : u8 = 0b00000001;
+    /// Returns whether the cape flag is enabled.
     pub const fn cape(&self) -> bool { self.get(Self::CAPE) }
+    /// Sets whether the cape flag is enabled.
     pub const fn set_cape(&mut self, enabled : bool) { self.set(Self::CAPE, enabled); }
 
+    /// The jacket byte flag.
     pub const JACKET : u8 = 0b00000010;
+    /// Returns whether the jacket flag is enabled.
     pub const fn jacket(&self) -> bool { self.get(Self::JACKET) }
+    /// Sets whether the jacket flag is enabled.
     pub const fn set_jacket(&mut self, enabled : bool) { self.set(Self::JACKET, enabled); }
 
+    /// The left sleeve byte flag.
     pub const LEFT_SLEEVE : u8 = 0b00000100;
+    /// Returns whether the left sleeve flag is enabled.
     pub const fn left_sleeve(&self) -> bool { self.get(Self::LEFT_SLEEVE) }
+    /// Sets whether the left sleeve flag is enabled.
     pub const fn set_left_sleeve(&mut self, enabled : bool) { self.set(Self::LEFT_SLEEVE, enabled); }
 
+    /// The right sleeve byte flag.
     pub const RIGHT_SLEEVE : u8 = 0b00001000;
+    /// Returns whether the right sleeve flag is enabled.
     pub const fn right_sleeve(&self) -> bool { self.get(Self::RIGHT_SLEEVE) }
+    /// Sets whether the right sleeve flag is enabled.
     pub const fn set_right_sleeve(&mut self, enabled : bool) { self.set(Self::RIGHT_SLEEVE, enabled); }
 
+    /// The left pants leg byte flag.
     pub const LEFT_PANTS_LEG : u8 = 0b00010000;
+    /// Returns whether the left pants leg flag is enabled.
     pub const fn left_pants_leg(&self) -> bool { self.get(Self::LEFT_PANTS_LEG) }
+    /// Sets whether the left pants leg flag is enabled.
     pub const fn set_left_pants_leg(&mut self, enabled : bool) { self.set(Self::LEFT_PANTS_LEG, enabled); }
 
+    /// The right pants leg byte flag.
     pub const RIGHT_PANTS_LEG : u8 = 0b00100000;
+    /// Returns whether the right pants leg flag is enabled.
     pub const fn right_pants_leg(&self) -> bool { self.get(Self::RIGHT_PANTS_LEG) }
+    /// Sets whether the right pants leg flag is enabled.
     pub const fn set_right_pants_leg(&mut self, enabled : bool) { self.set(Self::RIGHT_PANTS_LEG, enabled); }
 
+    /// The hat byte flag.
     pub const HAT : u8 = 0b01000000;
+    /// Returns whether the hat flag is enabled.
     pub const fn hat(&self) -> bool { self.get(Self::HAT) }
+    /// Sets whether the hat flag is enabled.
     pub const fn set_hat(&mut self, enabled : bool) { self.set(Self::HAT, enabled); }
 
     #[inline(always)]
@@ -118,10 +160,14 @@ impl Debug for SkinLayers {
 }
 
 
+/// Amount of particles which will be displayed.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub enum ParticleStatus {
+    /// All particles shown.
     All,
+    /// Decreased particles shown.
     Decreased,
+    /// Minimal particles shown.
     Minimal
 }
 
@@ -129,27 +175,28 @@ pub enum ParticleStatus {
 impl PacketDecode for ClientInfo {
     type Error = ClientInfoDecodeError;
 
-    fn decode(buf : &mut DecodeBuf<'_>)
-        -> Result<Self, Self::Error>
+    fn decode<I>(iter : &mut DecodeIter<I>) -> Result<Self, Self::Error>
+    where
+        I : ExactSizeIterator<Item = u8>
     { Ok(Self {
-        locale             : <_>::decode(buf).map_err(ClientInfoDecodeError::Locale)?,
-        view_dist          : <_>::decode(buf).map_err(ClientInfoDecodeError::ViewDist)?,
-        chat_mode          : match (*<VarInt<u32>>::decode(buf).map_err(ClientInfoDecodeError::ChatMode)?) {
+        locale             : <_>::decode(iter).map_err(ClientInfoDecodeError::Locale)?,
+        view_dist          : <_>::decode(iter).map_err(ClientInfoDecodeError::ViewDist)?,
+        chat_mode          : match (*<VarInt<u32>>::decode(iter).map_err(ClientInfoDecodeError::ChatMode)?) {
             0 => ChatMode::Enabled,
             1 => ChatMode::CommandsOnly,
             2 => ChatMode::Hidden,
             v => { return Err(ClientInfoDecodeError::UnknownChatMode(v))? }
         },
-        chat_colours       : <_>::decode(buf).map_err(ClientInfoDecodeError::ChatColours)?,
-        skin_layers        : SkinLayers(<_>::decode(buf).map_err(ClientInfoDecodeError::SkinFlags)?),
-        left_handed        : match (*<VarInt<u32>>::decode(buf).map_err(ClientInfoDecodeError::MainHand)?) {
+        chat_colours       : <_>::decode(iter).map_err(ClientInfoDecodeError::ChatColours)?,
+        skin_layers        : SkinLayers(<_>::decode(iter).map_err(ClientInfoDecodeError::SkinFlags)?),
+        left_handed        : match (*<VarInt<u32>>::decode(iter).map_err(ClientInfoDecodeError::MainHand)?) {
             0 => true,
             1 => false,
             v => { return Err(ClientInfoDecodeError::UnknownMainHand(v))? }
         },
-        text_filtered      : <_>::decode(buf).map_err(ClientInfoDecodeError::TextFiltered)?,
-        allow_motd_listing : <_>::decode(buf).map_err(ClientInfoDecodeError::AllowMotdListing)?,
-        particle_status    : match (*<VarInt<u32>>::decode(buf).map_err(ClientInfoDecodeError::ParticleStatus)?) {
+        text_filtered      : <_>::decode(iter).map_err(ClientInfoDecodeError::TextFiltered)?,
+        allow_motd_listing : <_>::decode(iter).map_err(ClientInfoDecodeError::AllowMotdListing)?,
+        particle_status    : match (*<VarInt<u32>>::decode(iter).map_err(ClientInfoDecodeError::ParticleStatus)?) {
             0 => ParticleStatus::All,
             1 => ParticleStatus::Decreased,
             2 => ParticleStatus::Minimal,
@@ -159,19 +206,32 @@ impl PacketDecode for ClientInfo {
 }
 
 
+/// Returned by packet decoders when a `ClientInfo` was not decoded successfully.
 #[derive(Debug)]
 pub enum ClientInfoDecodeError {
+    /// The locale failed to decode.
     Locale(BoundedStringDecodeError),
+    /// The view distance failed to decode.
     ViewDist(IncompleteDecodeError),
+    /// The chat mode failed to decode.
     ChatMode(VarIntDecodeError),
+    /// The chat mode was not valid.
     UnknownChatMode(u32),
+    /// The chat colours setting failed to decode.
     ChatColours(IncompleteDecodeError),
+    /// The skin flags failed to decode.
     SkinFlags(IncompleteDecodeError),
+    /// The main hand setting failed to decode.
     MainHand(VarIntDecodeError),
+    /// The main hand was not valid.
     UnknownMainHand(u32),
+    /// The text filtering setting failed to decode.
     TextFiltered(IncompleteDecodeError),
+    /// The server listing setting failed to decode.
     AllowMotdListing(IncompleteDecodeError),
+    /// The particle amount setting failed to decode.
     ParticleStatus(VarIntDecodeError),
+    /// The particle amount was not valid.
     UnknownParticleStatus(u32)
 }
 impl Display for ClientInfoDecodeError {

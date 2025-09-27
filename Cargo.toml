@@ -8,9 +8,7 @@ generated = [ ]
 
 [lints.rust]
 unused_parens = "allow"
-# TODO: missing_docs = "deny"
-[lints.clippy]
-missing_safety_doc = "allow" # TODO: Remove
+missing_docs  = "deny"
 
 
 [dependencies.pipeworkmc-codec]

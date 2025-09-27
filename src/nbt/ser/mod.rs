@@ -37,9 +37,12 @@ mod tag {
 }
 
 
+/// Errors emitted when serialising a value as NBT.
 #[derive(Debug)]
 pub enum NbtSerError {
+    /// An io error occured.
     Io(io::Error),
+    /// A value serialiser returned a custom error.
     Custom(String)
 }
 impl From<io::Error> for NbtSerError {
@@ -66,6 +69,7 @@ impl SerError for NbtSerError {
 }
 
 
+/// Serialise a value as network NBT.
 pub fn to_network<W, T>(mut writer : W, value : &T) -> Result<(), NbtSerError>
 where
     W : Write,

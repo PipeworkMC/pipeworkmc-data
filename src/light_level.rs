@@ -1,3 +1,6 @@
+//! Light levels.
+
+
 use crate::num::provider::IntProvider;
 use core::fmt::{ self, Formatter };
 use serde::{
@@ -10,11 +13,13 @@ use serde::{
 use syndebug::SynDebug;
 
 
+/// An integer light level.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub struct LightLevel(u8);
 
 impl LightLevel {
 
+    /// Creates a new [`LightLevel`] if the given value is less than 16.
     #[inline]
     pub const fn new(n : u8) -> Option<Self> {
         if (n < 16) {
@@ -22,11 +27,16 @@ impl LightLevel {
         } else { None }
     }
 
+    /// Creates a new [`LightLevel`] without checking that the given value is less than 16.
+    ///
+    /// ### Safety
+    /// The given value must be less than 16.
     #[inline(always)]
     pub const unsafe fn new_unchecked(n : u8) -> Self {
         Self(n)
     }
 
+    /// Returns the contained value as a primitive type.
     #[inline]
     pub const fn get(self) -> Self { Self(self.0) }
 
@@ -130,4 +140,5 @@ impl TryFrom<u128> for LightLevel {
 }
 
 
+/// An [`IntProvider`] for [`LightLevel`]s.
 pub type LightLevelProvider<'l> = IntProvider<'l, LightLevel>;

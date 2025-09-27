@@ -1,3 +1,6 @@
+#![doc = include_str!("../README.md")]
+
+
 #![feature(
 
     // Language
@@ -28,7 +31,7 @@ pub mod dimension_type;
 pub mod frog_variant;
 pub mod game_mode;
 pub mod ident;
-pub mod itemstack;
+pub mod item_stack;
 pub mod known_pack;
 pub mod light_level;
 pub mod nbt;

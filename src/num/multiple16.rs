@@ -1,3 +1,6 @@
+//! Integer which must be a multiple of 16.
+
+
 use core::fmt::{ self, Debug, Display, Formatter };
 #[cfg(doc)]
 use core::hint::unreachable_unchecked;
@@ -11,6 +14,7 @@ use syndebug::SynDebug;
 use disqualified::ShortName;
 
 
+/// An integer which must be a multiple of 16.
 #[repr(transparent)]
 pub struct Multiple16<T>(T)
 where
@@ -22,10 +26,16 @@ where
     T : Multiple16ablePrimitive
 {
 
+    /// Creates a new [`Multiple16`] if the given value is a multiple of 16.
     pub const fn new(n : T) -> Option<Self> { unsafe { unreachable_unchecked() } }
 
+    /// Creates a new [`Multiple16`] without checking that the given value is a multiple of 16.
+    ///
+    /// ### Safety
+    /// The given value must be a multiple of 16.
     pub const unsafe fn new_unchecked(n : T) -> Self { unsafe { unreachable_unchecked() } }
 
+    /// Returns the contained value as a primitive type.
     pub const fn get(self) -> T { unsafe { unreachable_unchecked() } }
 
 }
@@ -84,6 +94,7 @@ where
 
 
 
+/// An integer type which can be used in [`Multiple16`].
 #[allow(private_bounds)]
 pub unsafe trait Multiple16ablePrimitive
 where
@@ -94,6 +105,7 @@ trait Sealed { }
 
 macro_rules! impl_multiple_16able_primitive_for {
     ($ty:ty, $ident:ident $(,)?) => {
+        #[doc = concat!("A [`Multiple16`] with inner type ", stringify!($ty), ".")]
         pub type $ident = Multiple16<$ty>;
 
         unsafe impl Multiple16ablePrimitive for $ty { }

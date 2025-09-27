@@ -1,3 +1,7 @@
+//! Game versions and protocol IDs.
+
+
+/// Game versions by protocol ID.
 #[derive(Clone, Copy)]
 pub struct Version {
     id    : u32,
@@ -6,8 +10,10 @@ pub struct Version {
 
 impl Version {
 
+    /// The current version supported by this library.
     pub const CURRENT : Self = Self::by_id(772).unwrap(); // TODO: Check against current datagen
 
+    /// Get version information by protocol ID.
     pub const fn by_id(id : u32) -> Option<Self> {
         let mut i = 0;
         while (i < Self::LOOKUP.len()) {
@@ -20,6 +26,7 @@ impl Version {
         None
     }
 
+    /// Get version information by version or snapshot name.
     pub const fn by_name(name : &'static str) -> Option<Self> {
         let mut i = 0;
         while (i < Self::LOOKUP.len()) {
@@ -47,15 +54,19 @@ impl Version {
 
 impl Version {
 
+    /// The protocol ID of this version.
     #[inline(always)]
     pub const fn id(self) -> u32 { self.id }
 
+    /// The version or snapshot names supporting this protocol ID.
     #[inline(always)]
     pub const fn names(self) -> &'static [&'static str] { self.names }
 
+    /// The earliest version or snapshot name supporting this protocol ID.
     #[inline(always)]
     pub const fn earliest_name(self) -> &'static str { self.names[0] }
 
+    /// The latest version or snapshot name supporting this protocol ID.
     #[inline(always)]
     pub const fn latest_name(self) -> &'static str { self.names.last().unwrap() }
 

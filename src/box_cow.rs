@@ -1,3 +1,6 @@
+//! [`Cow`](std::borrow::Cow)-like, but within a [`Box`].
+
+
 use core::{
     fmt::{ self, Formatter },
     hint::unreachable_unchecked,
@@ -12,12 +15,15 @@ use serde::{
 use syndebug::SynDebug;
 
 
+/// Similar to [`Cow`](std::borrow::Cow), but within a [`Box`].
 #[derive(Debug, Clone)]
 pub enum BoxCow<'l, B>
 where
     B : Clone + 'l
 {
+    /// Borrowed data.
     Borrowed(&'l B),
+    /// Owned data.
     Owned(Box<B>)
 }
 
@@ -27,6 +33,9 @@ where
     B : Clone + 'l
 {
 
+    /// Acquires a mutable reference to the owned form of the data.
+    ///
+    /// Clones the data if it is not already owned.
     pub fn to_mut(&mut self) -> &mut B {
         match (self) {
             Self::Borrowed(b)  => {
@@ -39,6 +48,9 @@ where
         }
     }
 
+    /// Extracts the owned data.
+    ///
+    /// Clones the data if it is not already owned.
     #[inline]
     pub fn into_owned(self) -> Box<B> {
         match (self) {

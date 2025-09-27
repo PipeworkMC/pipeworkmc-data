@@ -1,3 +1,6 @@
+//! Colours.
+
+
 use serde::{
     Serialize as Ser,
     Serializer as Serer,
@@ -11,20 +14,26 @@ use syndebug::SynDebug;
 const LOWER_HEX_DIGITS : [u8; 16] = [b'0', b'1', b'2', b'3', b'4', b'5', b'6', b'7', b'8', b'9', b'a', b'b', b'c', b'd', b'e', b'f'];
 
 
+/// An RGB colour.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, SynDebug)]
 pub struct Rgb {
+    /// Red
     pub r : u8,
+    /// Green
     pub g : u8,
+    /// Blue
     pub b : u8
 }
 
 impl Rgb {
 
+    /// Create a new [`Rgb`] from a red, green, and blue value.
     #[inline(always)]
     pub const fn new(r : u8, g : u8, b : u8) -> Self {
         Self { r, g, b }
     }
 
+    /// Create a new [`Rgb`] by decoding a [`u32`].
     #[inline]
     pub const fn from_u32(v : u32) -> Self {
         Self {
@@ -34,28 +43,46 @@ impl Rgb {
         }
     }
 
+    /// Create a new greyscale [`Rgb`] with a brightness.
     #[inline(always)]
     pub const fn splat(v : u8) -> Self {
         Self { r : v, g : v, b : v }
     }
 
+    /// Vanilla `§0` colour.
     pub const BLACK      : Self = Self { r :   0, g :   0, b :   0 };
+    /// Vanilla `§1` colour.
     pub const DARK_BLUE  : Self = Self { r :   0, g :   0, b : 170 };
+    /// Vanilla `§2` colour.
     pub const DARK_GREEN : Self = Self { r :   0, g : 170, b :   0 };
+    /// Vanilla `§3` colour.
     pub const DARK_CYAN  : Self = Self { r :   0, g : 170, b : 170 };
+    /// Vanilla `§4` colour.
     pub const DARK_RED   : Self = Self { r : 170, g :   0, b :   0 };
+    /// Vanilla `§5` colour.
     pub const PURPLE     : Self = Self { r : 170, g :   0, b : 170 };
+    /// Vanilla `§6` colour.
     pub const ORANGE     : Self = Self { r : 255, g : 170, b :   0 };
+    /// Vanilla `§7` colour.
     pub const GREY       : Self = Self { r : 170, g : 170, b : 170 };
+    /// Vanilla `§8` colour.
     pub const DARK_GREY  : Self = Self { r :  85, g :  85, b :  85 };
+    /// Vanilla `§9` colour.
     pub const BLUE       : Self = Self { r :  85, g :  85, b : 255 };
+    /// Vanilla `§a` colour.
     pub const GREEN      : Self = Self { r :  85, g : 255, b :  85 };
+    /// Vanilla `§b` colour.
     pub const CYAN       : Self = Self { r :  85, g : 255, b : 255 };
+    /// Vanilla `§c` colour.
     pub const RED        : Self = Self { r : 255, g :  85, b :  85 };
+    /// Vanilla `§d` colour.
     pub const PINK       : Self = Self { r : 255, g :  85, b : 255 };
+    /// Vanilla `§e` colour.
     pub const YELLOW     : Self = Self { r : 255, g : 255, b :  85 };
+    /// Vanilla `§f` colour.
     pub const WHITE      : Self = Self { r : 255, g : 255, b : 255 };
 
+    /// Create a new [`Rgb`] by parsing a hexadecimal string or name.
     pub fn from_hex_or_name<'de, D>(deserer : D) -> Result<Self, D::Error>
     where
         D : Deserer<'de>
@@ -95,21 +122,25 @@ impl Rgb {
 
 impl Rgb {
 
+    /// Convert this [`Rgb`] to an [`Argb`] with the given alpha.
     #[inline(always)]
     pub const fn with_alpha(self, a : u8) -> Argb {
         Argb { a, r : self.r, g : self.g, b : self.b }
     }
 
+    /// Convert this [`Rgb`] to a fully opaque [`Argb`].
     #[inline(always)]
     pub const fn opaque(self) -> Argb {
         Argb { a : 255, r : self.r, g : self.g, b : self.b }
     }
 
+    /// Encodes this [`Rgb`] as a [`u32`].
     #[inline]
     pub const fn to_u32(self) -> u32 {
         ((self.r as u32) << 16) | ((self.g as u32) << 8) | (self.b as u32)
     }
 
+    /// Encodes this [`Rgb`] as a hexadecimal string.
     pub fn to_hex<S>(&self, serer : S) -> Result<S::Ok, S::Error>
     where
         S : Serer
@@ -146,21 +177,28 @@ impl<'de> Deser<'de> for Rgb {
 }
 
 
+/// An ARGB colour.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, SynDebug)]
 pub struct Argb {
+    /// Alpha (opacity)
     pub a : u8,
+    /// Red
     pub r : u8,
+    /// Green
     pub g : u8,
+    /// Blue
     pub b : u8
 }
 
 impl Argb {
 
+    /// Create a new [`Argb`] from an alpha, red, green, and blue value.
     #[inline(always)]
     pub const fn new(a : u8, r : u8, g : u8, b : u8) -> Self {
         Self { a, r, g, b }
     }
 
+    /// Create a new [`Argb`] by decoding a [`u32`].
     #[inline]
     pub const fn from_u32(v : u32) -> Self {
         Self {
@@ -171,29 +209,48 @@ impl Argb {
         }
     }
 
+    /// Create a new greyscale [`Argb`] with an alpha and brightness.
     #[inline(always)]
     pub const fn splat(a : u8, v : u8) -> Self {
         Self { a, r : v, g : v, b : v }
     }
 
+    /// Vanilla `§0` colour.
     pub const BLACK       : Self = Self { a : 255, r :   0, g :   0, b :   0 };
+    /// Vanilla `§1` colour.
     pub const DARK_BLUE   : Self = Self { a : 255, r :   0, g :   0, b : 170 };
+    /// Vanilla `§2` colour.
     pub const DARK_GREEN  : Self = Self { a : 255, r :   0, g : 170, b :   0 };
+    /// Vanilla `§3` colour.
     pub const DARK_CYAN   : Self = Self { a : 255, r :   0, g : 170, b : 170 };
+    /// Vanilla `§4` colour.
     pub const DARK_RED    : Self = Self { a : 255, r : 170, g :   0, b :   0 };
+    /// Vanilla `§5` colour.
     pub const PURPLE      : Self = Self { a : 255, r : 170, g :   0, b : 170 };
+    /// Vanilla `§6` colour.
     pub const ORANGE      : Self = Self { a : 255, r : 255, g : 170, b :   0 };
+    /// Vanilla `§7` colour.
     pub const GREY        : Self = Self { a : 255, r : 170, g : 170, b : 170 };
+    /// Vanilla `§8` colour.
     pub const DARK_GREY   : Self = Self { a : 255, r :  85, g :  85, b :  85 };
+    /// Vanilla `§9` colour.
     pub const BLUE        : Self = Self { a : 255, r :  85, g :  85, b : 255 };
+    /// Vanilla `§a` colour.
     pub const GREEN       : Self = Self { a : 255, r :  85, g : 255, b :  85 };
+    /// Vanilla `§b` colour.
     pub const CYAN        : Self = Self { a : 255, r :  85, g : 255, b : 255 };
+    /// Vanilla `§c` colour.
     pub const RED         : Self = Self { a : 255, r : 255, g :  85, b :  85 };
+    /// Vanilla `§d` colour.
     pub const PINK        : Self = Self { a : 255, r : 255, g :  85, b : 255 };
+    /// Vanilla `§e` colour.
     pub const YELLOW      : Self = Self { a : 255, r : 255, g : 255, b :  85 };
+    /// Vanilla `§f` colour.
     pub const WHITE       : Self = Self { a : 255, r : 255, g : 255, b : 255 };
+    /// Colour with alpha set to zero.
     pub const TRANSPARENT : Self = Self { a :   0, r :   0, g :   0, b :   0 };
 
+    /// Create a new [`Argb`] by parsing a hexadecimal string.
     pub fn from_hex<'de, D>(deserer : D) -> Result<Self, D::Error>
     where
         D : Deserer<'de>
@@ -217,16 +274,19 @@ impl Argb {
 
 impl Argb {
 
+    /// Convert this [`Argb`] to an [`Rgb`] by removing the alpha.
     #[inline(always)]
     pub const fn without_alpha(self) -> Rgb {
         Rgb { r : self.r, g : self.g, b : self.b }
     }
 
+    /// Encodes this [`Rgb`] as a [`u32`].
     #[inline]
     pub const fn to_u32(self) -> u32 {
         ((self.a as u32) << 24) | ((self.r as u32) << 16) | ((self.g as u32) << 8) | (self.b as u32)
     }
 
+    /// Encodes this [`Argb`] as a hexadecimal string.
     pub fn to_hex<S>(&self, serer : S) -> Result<S::Ok, S::Error>
     where
         S : Serer

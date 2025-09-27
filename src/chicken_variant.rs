@@ -1,3 +1,6 @@
+//! Chicken variant registry entries.
+
+
 use crate::{
     ident::Ident,
     nbt::to_network as to_network_nbt,
@@ -12,20 +15,28 @@ use serde::{
 use syndebug::SynDebug;
 
 
+/// A chicken variant registry entry.
 #[derive(Ser, Deser, Debug, SynDebug)]
 #[serde(deny_unknown_fields)]
 pub struct ChickenVariant {
+    /// The resource ID of the texture asset.
     #[serde(rename = "asset_id")]
     pub texture_asset    : Ident,
+    /// The model to display as.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub model            : Option<ChickenVariantModel>,
+    /// Conditions required to spawn.
+    ///
+    /// Unused by this library.
     #[serde(skip_serializing)]
     pub spawn_conditions : IgnoredAny
 }
 
+/// Chicken model.
 #[derive(Ser, Deser, Debug, SynDebug)]
 #[serde(deny_unknown_fields)]
 pub enum ChickenVariantModel {
+    /// Cold.
     #[serde(rename = "cold")]
     Cold
 }

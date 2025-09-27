@@ -1,3 +1,6 @@
+//! Integer providers.
+
+
 use crate::{
     box_cow::BoxCow,
     num::weighted::Weighted
@@ -21,6 +24,7 @@ use serde::{
 use syndebug::SynDebug;
 
 
+/// An integer provider.
 #[derive(Clone, Ser, Debug, SynDebug)]
 #[serde(tag = "type")]
 pub enum IntProvider<'l, T>
@@ -28,40 +32,63 @@ where
     T : Clone + SynDebug + TryFrom<u64> + TryFrom<i64>
 {
 
+    /// Constant value.
     #[serde(rename = "minecraft:constant", alias = "constant")]
     Constant {
+        /// The constant value.
         value : T
     },
 
+    /// Choose a uniformly-distributed random value from a range.
     #[serde(rename = "minecraft:uniform", alias = "uniform")]
     Uniform {
+        /// The minimum possible value.
         min_inclusive : T,
+        /// The maximum possible value.
+        /// Can not be less than `min_inclusive`.
         max_inclusive : T
     },
 
+    /// Choose a bottom-biased random value from a range.
     #[serde(rename = "minecraft:biased_to_bottom", alias = "biased_to_bottom")]
     BiasedToBottom {
+        /// The minimum possible value.
         min_inclusive : T,
+        /// The maximum possible value.
+        /// Can not be less than `min_inclusive`.
         max_inclusive : T
     },
 
+    /// Clamp another [`IntProvider`] to a range.
     #[serde(rename = "minecraft:clamped", alias = "clamped")]
     Clamped {
+        /// The minimum possible value.
         min_inclusive : T,
+        /// The maximum possible value.
+        /// Can not be less than `min_inclusive`.
         max_inclusive : T,
+        /// The [`IntProvider`] to clamp.
         source        : BoxCow<'l, IntProvider<'l, T>>
     },
 
+    /// Choose a normally-distributed random value and clamp it to a range.
     #[serde(rename = "minecraft:clamped_normal", alias = "clamped_normal")]
     ClampedNormal {
+        /// The mean value of the normal distribution.
         mean          : f32,
+        /// The deviation of the normal distribution.
         deviation     : f32,
+        /// The minimum possible value.
         min_inclusive : T,
+        /// The maximum possible value.
+        /// Can not be less than `min_inclusive`.
         max_inclusive : T
     },
 
+    /// Choose randomly from a pool of [`IntProvider`]s.
     #[serde(rename = "minecraft:weighted_list", alias = "weighted_list")]
     WeightedList {
+        /// The pool of weighted [`IntProviders`] to choose from.
         distribution : Cow<'l, [Weighted<IntProvider<'l, T>>]>
     }
 

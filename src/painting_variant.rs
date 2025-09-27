@@ -1,3 +1,6 @@
+//! Painting variant registry entries.
+
+
 use crate::{
     ident::Ident,
     nbt::to_network as to_network_nbt,
@@ -13,15 +16,21 @@ use serde::{
 use syndebug::SynDebug;
 
 
+/// A painting variant registr yentry.
 #[derive(Ser, Deser, Debug, SynDebug)]
 #[serde(deny_unknown_fields)]
 pub struct PaintingVariant {
+    /// The resource ID of the texture asset.
     #[serde(rename = "asset_id")]
     pub texture_asset : Ident,
+    /// The height of the painting in blocks.
     pub height        : NonZeroU32,
+    /// The width of the painting in blocks.
     pub width         : NonZeroU32,
+    /// The title of the painting, shown in the item tooltip.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub title         : Option<Text>,
+    /// The author of the painting, shown in the item tooltip.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub author        : Option<Text>
 }

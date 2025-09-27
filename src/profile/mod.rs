@@ -1,3 +1,6 @@
+//! Player account profiles.
+
+
 use crate::{
     bounded_string::BoundedString,
     uuid::Uuid,
@@ -14,34 +17,26 @@ use serde::Deserialize as Deser;
 mod deser;
 
 
+/// A player account profile.
 #[derive(Clone, Component, Debug)]
 #[component(immutable)]
 pub struct AccountProfile {
+    /// The player account UUID.
     pub uuid     : Uuid,
+    /// The player account username.
     pub username : BoundedString<16>,
+    /// The player's skin, if they have one.
     pub skin     : Option<AccountProperty>
 }
 
+/// A player account property.
 #[derive(Clone, Deser, Debug)]
 pub struct AccountProperty {
+    /// The value of the property.
     pub value : String,
+    /// The signature of the property.
     #[serde(rename = "signature")]
     pub sig   : Option<String>,
-}
-
-
-impl AccountProfile {
-    #[inline]
-    pub fn new(uuid : Uuid, username : BoundedString<16>, skin : Option<AccountProperty>) -> Self {
-        Self { uuid, username, skin }
-    }
-}
-
-impl AccountProperty {
-    #[inline]
-    pub fn new(value : String, sig : Option<String>) -> Self {
-        Self { value, sig }
-    }
 }
 
 

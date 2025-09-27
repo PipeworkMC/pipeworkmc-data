@@ -1,3 +1,6 @@
+//! Formatted text.
+
+
 use crate::{
     action::Action,
     colour::{ Rgb, Argb },
@@ -20,72 +23,89 @@ mod fmt;
 mod ser;
 
 
+/// A collection of formatted text components.
 #[derive(Ser, Clone, Debug, SynDebug)]
 #[serde(transparent)]
 pub struct Text {
+    /// Components within this text, each with individual styling information.
     pub components : Cow<'static, [TextComponent]>
 }
 
-// impl Ser for Text { // TODO FIXME: Text serialiser
-//     fn serialize<S>(&self, serer : S) -> Result<S::Ok, S::Error>
-//     where
-//         S : serde::Serializer
-//     {
-//         "Text".serialize(serer)
-//     }
-// }
-
+/// A formatted text copmonent.
 #[derive(Ser, Deser, Clone, Debug, SynDebug)]
 #[serde(into = "ser::ExtraedTextComponent")]
 pub struct TextComponent {
+    /// The content in this text component,.
     #[serde(flatten)]
     pub content : TextContent,
+    /// The styling information for this text component.
     #[serde(flatten)]
     pub style   : TextStyle
 }
 
+/// The content of a text component.
 #[derive(Ser, Deser, Clone, Debug, SynDebug)]
 #[serde(untagged)]
 pub enum TextContent {
+    /// A literal string.
     Literal {
+        /// Text to display.
         text : Cow<'static, str>
     },
+    /// A translated component.
     Translate {
+        /// Translation key.
         #[serde(rename = "translate")]
         key      : Cow<'static, str>,
+        /// Fallback text to use when the translation key does not exist.
         #[serde(skip_serializing_if = "Option::is_none")]
         fallback : Option<Cow<'static, str>>,
+        /// Interpolation replacements.
         #[serde(skip_serializing_if = "slice_is_empty", default)]
         with     : Cow<'static, [Text]>
     },
+    /// A keybind component.
     Keybind {
+        /// ID of the keybind.
         #[serde(rename = "keybind")]
         id : Cow<'static, str>
     }
 }
 
+/// The styling information for a textc component.
 #[derive(Ser, Deser, Clone, Debug, SynDebug)]
 pub struct TextStyle {
+    /// Text display colour.
     #[serde(rename = "color", serialize_with = "Rgb::to_hex", deserialize_with = "Rgb::from_hex_or_name")]
     pub colour    : Rgb,
+    /// Font resource ID.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub font      : Option<Ident>,
+    /// Bolded.
     #[serde(default)]
     pub bold      : bool,
+    /// Italicised
     #[serde(default)]
     pub italic    : bool,
+    /// Underlined
     #[serde(rename = "underlined", default)]
     pub underline : bool,
+    /// Crossed out
     #[serde(rename = "strikethrough", default)]
     pub strike    : bool,
+    /// Obfuscated
     #[serde(rename = "obfuscated", default)]
     pub obfuscate : bool,
+    /// Text shadow colour.
     #[serde(rename = "shadow_color", skip_serializing_if = "Option::is_none")]
     pub shadow    : Option<Argb>,
+    /// Text inserted to chat bar on component shift-clicked.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub insertion : Option<Cow<'static, str>>,
+    /// Action to execute on component clicked.
     #[serde(rename = "click_event", skip_serializing_if = "Option::is_none")]
     pub on_click  : Option<Action>,
+    /// Text to display on component hovered.
     #[serde(rename = "hover_event", skip_serializing_if = "Option::is_none", serialize_with = "ser::ser_hover_event_tooltip", deserialize_with = "ser::deser_hover_event_tooltip", default)]
     pub tooltip   : Option<Text>
 }
@@ -93,6 +113,7 @@ pub struct TextStyle {
 
 impl Text {
 
+    /// Create a new [`Text`] with a single literal component.
     #[inline]
     pub fn literal<S>(text : S) -> Self
     where
@@ -101,6 +122,7 @@ impl Text {
         text : text.into()
     }.into() }
 
+    /// Create a new [`Text`] with a single translatable component.
     #[inline]
     pub fn translate<S>(key : S) -> Self
     where
@@ -111,6 +133,7 @@ impl Text {
         with     : Cow::Borrowed(&[])
     }.into() }
 
+    /// Create a new [`Text`] with a single translatable component with fallback.
     #[inline]
     pub fn translate_or<S, F>(key : S, fallback : F) -> Self
     where
@@ -122,6 +145,7 @@ impl Text {
         with     : Cow::Borrowed(&[])
     }.into() }
 
+    /// Create a new [`Text`] with a single translatable component with interpolation components.
     #[inline]
     pub fn translate_with<S, W>(key : S, with : W) -> Self
     where
@@ -133,6 +157,7 @@ impl Text {
         with     : with.into()
     }.into() }
 
+    /// Create a new [`Text`] with a single translatable component with fallback and interpolation components.
     #[inline]
     pub fn translate_with_or<S, W, F>(key : S, with : W, fallback : F) -> Self
     where
@@ -145,6 +170,7 @@ impl Text {
         with     : with.into()
     }.into() }
 
+    /// Create a new [`Text`] with a single keybind component.
     #[inline]
     pub fn keybind<S>(id : S) -> Self
     where
@@ -157,6 +183,7 @@ impl Text {
 
 impl Text {
 
+    /// Apply a function to every component in this [`Text`].
     pub fn apply<F>(mut self, mut f : F) -> Self
     where
         F : FnMut(&mut TextComponent)
@@ -173,6 +200,7 @@ impl Text {
 
 
 impl TextComponent {
+    /// An empty literal component.
     pub const EMPTY : Self = Self {
         content : TextContent::Literal { text : Cow::Borrowed("") },
         style   : TextStyle::EMPTY
@@ -208,6 +236,7 @@ impl From<TextContent> for TextComponent {
 }
 
 impl TextStyle {
+    /// A text style with no styling behaviour.
     pub const EMPTY : Self = Self {
         colour    : Rgb::WHITE,
         font      : None,
@@ -236,53 +265,93 @@ where
 } }
 
 
+/// A trait which enables `self` to be given colour.
 pub trait TextFormatted
 where
     Self : Sized
 {
+    /// Set this text's display colour.
     fn colour<C>(self, colour : C) -> Text
         where C : Into<Rgb>;
+    /// Set this text's display colour to `§0`.
     fn black(self) -> Text { self.colour(Rgb::BLACK) }
+    /// Set this text's display colour to `§1`.
     fn dark_blue(self) -> Text { self.colour(Rgb::DARK_BLUE) }
+    /// Set this text's display colour to `§2`.
     fn dark_green(self) -> Text { self.colour(Rgb::DARK_GREEN) }
+    /// Set this text's display colour to `§3`.
     fn dark_cyan(self) -> Text { self.colour(Rgb::DARK_CYAN) }
+    /// Set this text's display colour to `§4`.
     fn dark_red(self) -> Text { self.colour(Rgb::DARK_RED) }
+    /// Set this text's display colour to `§5`.
     fn purple(self) -> Text { self.colour(Rgb::PURPLE) }
+    /// Set this text's display colour to `§6`.
     fn orange(self) -> Text { self.colour(Rgb::ORANGE) }
+    /// Set this text's display colour to `§7`.
     fn grey(self) -> Text { self.colour(Rgb::GREY) }
+    /// Set this text's display colour to `§8`.
     fn dark_grey(self) -> Text { self.colour(Rgb::DARK_GREY) }
+    /// Set this text's display colour to `§9`.
     fn blue(self) -> Text { self.colour(Rgb::BLUE) }
+    /// Set this text's display colour to `§a`.
     fn green(self) -> Text { self.colour(Rgb::GREEN) }
+    /// Set this text's display colour to `§b`.
     fn cyan(self) -> Text { self.colour(Rgb::CYAN) }
+    /// Set this text's display colour to `§c`.
     fn red(self) -> Text { self.colour(Rgb::RED) }
+    /// Set this text's display colour to `§d`.
     fn pink(self) -> Text { self.colour(Rgb::PINK) }
+    /// Set this text's display colour to `§e`.
     fn yellow(self) -> Text { self.colour(Rgb::YELLOW) }
+    /// Set this text's display colour to `§f`.
     fn white(self) -> Text { self.colour(Rgb::WHITE) }
+    /// Set this text's font resource ID.
     fn font<R>(self, resource : R) -> Text
         where R : Into<Ident>;
+    /// Set this text's font to the default resource.
     fn no_font(self) -> Text;
+    /// Make this text bolded.
     fn bold(self) -> Text;
+    /// Make this text unbolded.
     fn no_bold(self) -> Text;
+    /// Make this text italicised.
     fn italic(self) -> Text;
+    /// Make this text unitalicised.
     fn no_italic(self) -> Text;
+    /// Make this text underlined.
     fn underline(self) -> Text;
+    /// Make this text not underlined.
     fn no_underline(self) -> Text;
+    /// Make this text crossed out.
     fn strike(self) -> Text;
+    /// Make this text not crossed out.
     fn no_strike(self) -> Text;
+    /// Make this text obfuscated.
     fn obfuscate(self) -> Text;
+    /// Make this text unobfuscated.
     fn no_obfuscate(self) -> Text;
+    /// Set this text's shadow colour.
     fn shadow<C>(self, colour : C) -> Text
         where C : Into<Argb>;
+    /// Remove this text's shadow.
     fn no_shadow(self) -> Text { self.shadow(Argb::TRANSPARENT) }
+    /// Set this text's shadow color to the default.
     fn default_shadow(self) -> Text;
+    /// Set the string that is inserted into chat bar when this text is shift-clicked.
     fn insertion<S>(self, text : S) -> Text
         where S : Into<Cow<'static, str>>;
+    /// Disable chat bar string insertion when this text is shift-clicked.
     fn no_insertion(self) -> Text;
+    /// Set the action that is executed when this text is clicked.
     fn on_click(self, action : Action) -> Text;
+    /// Disable actions executed when this text is clicked.
     fn no_on_click(self) -> Text;
+    /// Set this text's tooltip.
     fn tooltip<S>(self, text : S) -> Text
         where S : Into<Text>;
+    /// Disable this text's tooltip.
     fn no_tooltip(self) -> Text;
+    /// Disable all styling information on this text.
     fn reset(self) -> Text;
 }
 

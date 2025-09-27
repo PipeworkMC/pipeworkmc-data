@@ -1,3 +1,6 @@
+//! Wolf variant registry entries.
+
+
 use crate::{
     ident::Ident,
     nbt::to_network as to_network_nbt,
@@ -15,21 +18,31 @@ use serde::{
 use syndebug::SynDebug;
 
 
+/// A wolf variant registry entry.
 #[derive(Ser, Deser, Debug, SynDebug)]
 #[serde(deny_unknown_fields)]
 pub struct WolfVariant<'l> {
+    /// Resource IDs of the texture assets.
     pub assets           : WolfVariantAssets,
+    /// Biomes which the wolf spawns in.
     #[serde(default)]
     pub biomes           : Cow<'l, [Ident]>,
+    /// Conditions required to spawn.
+    ///
+    /// Unused by this library.
     #[serde(skip_serializing)]
     pub spawn_conditions : IgnoredAny
 }
 
+/// Resource IDs of a wolf variant's texture assets.
 #[derive(Ser, Deser, Debug, SynDebug)]
 #[serde(deny_unknown_fields)]
 pub struct WolfVariantAssets {
+    /// The resource ID of the wild texture asset.
     pub wild  : Ident,
+    /// The resource ID of the tame texture asset.
     pub tame  : Ident,
+    /// The resource ID of the angry texture asset.
     pub angry : Ident
 }
 

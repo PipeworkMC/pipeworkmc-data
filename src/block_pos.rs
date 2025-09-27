@@ -1,3 +1,6 @@
+//! Block positions.
+
+
 use crate::ident::Ident;
 use pipeworkmc_codec::encode::{
     PacketEncode,
@@ -5,14 +8,19 @@ use pipeworkmc_codec::encode::{
 };
 
 
+/// The position of a block in a dimension.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub struct BlockPos {
+    /// X
     pub x : i32,
+    /// Y
     pub y : i16,
+    /// Z
     pub z : i32
 }
 
 impl BlockPos {
+    /// A [`BlockPos`] with all lanes set to 0.
     pub const ZERO : Self = Self { x : 0, y : 0, z : 0 };
 }
 
@@ -29,9 +37,12 @@ unsafe impl PacketEncode for BlockPos {
 }
 
 
+/// The dimension and position of a block.
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct DimBlockPos {
+    /// The dimension.
     pub dim : Ident,
+    /// The position.
     pub pos : BlockPos
 }
 

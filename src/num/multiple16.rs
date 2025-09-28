@@ -96,11 +96,10 @@ where
 
 /// An integer type which can be used in [`Multiple16`].
 #[allow(private_bounds)]
-pub unsafe trait Multiple16ablePrimitive
+pub trait Multiple16ablePrimitive
 where
     for<'de> Self : Copy + Ser + Deser<'de> + Debug + Display + Sized + Sealed
 { }
-
 trait Sealed { }
 
 macro_rules! impl_multiple_16able_primitive_for {
@@ -108,7 +107,7 @@ macro_rules! impl_multiple_16able_primitive_for {
         #[doc = concat!("A [`Multiple16`] with inner type ", stringify!($ty), ".")]
         pub type $ident = Multiple16<$ty>;
 
-        unsafe impl Multiple16ablePrimitive for $ty { }
+        impl Multiple16ablePrimitive for $ty { }
 
         #[doc(hidden)]
         impl $ident {

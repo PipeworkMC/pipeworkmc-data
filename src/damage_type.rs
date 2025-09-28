@@ -26,9 +26,11 @@ pub struct DamageType<'l> {
     pub message_id    : Cow<'l, str>,
     /// When damage is scaled based on difficulty.
     ///
-    /// Unused by this library.
+    /// Unused by pipework.
     pub scaling       : DamageTypeScaling,
-    /// How much exhaustion is added when damage of this type is applied..
+    /// How much exhaustion is added when damage of this type is applied.
+    ///
+    /// Unused by pipework.
     pub exhaustion    : f32,
     /// The sound effect played when damage of this type is applied.
     #[serde(skip_serializing_if = "is_default", default)]

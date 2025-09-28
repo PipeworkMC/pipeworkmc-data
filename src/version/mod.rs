@@ -10,7 +10,7 @@ pub struct Version {
 
 impl Version {
 
-    /// The current version supported by this library.
+    /// The current version supported by pipework.
     pub const CURRENT : Self = Self::by_id(772).unwrap(); // TODO: Check against current datagen
 
     /// Get version information by protocol ID.

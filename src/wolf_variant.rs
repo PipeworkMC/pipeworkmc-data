@@ -29,7 +29,7 @@ pub struct WolfVariant<'l> {
     pub biomes           : Cow<'l, [Ident]>,
     /// Conditions required to spawn.
     ///
-    /// Unused by this library.
+    /// Unused by pipework.
     #[serde(skip_serializing)]
     pub spawn_conditions : IgnoredAny
 }

@@ -38,13 +38,13 @@ pub struct DimensionType<'l> {
     pub has_ceiling                     : bool,
     /// Whether water evaporates, sponges dry, and lava spreads thinner.
     ///
-    /// Unused by this library.
+    /// Unused by pipework.
     #[serde(rename = "ultrawarm")]
     pub is_ultrawarm                    : bool,
     /// When `true`, nether portals spawn zombified piglins.
     /// When `false`, compasses spin randomly.
     ///
-    /// Unused by this library.
+    /// Unused by pipework.
     #[serde(rename = "natural")]
     pub is_natural                      : bool,
     /// At what height clouds are rendered, if any.
@@ -52,7 +52,7 @@ pub struct DimensionType<'l> {
     pub cloud_height                    : Option<i32>,
     /// The multiplier applied to coordinates when travelling to this dimension.
     ///
-    /// Unused by this library.
+    /// Unused by pipework.
     #[serde(rename = "coordinate_scale")]
     pub coord_scale                     : f64,
     /// Whether players can sleep in a bed.
@@ -68,9 +68,11 @@ pub struct DimensionType<'l> {
     /// The logical height of the dimension, starting at `min_y`.
     /// Vanilla servers use this as a maximum height for chorus fruit and nether portal spawns.
     ///
-    /// Unused by this library.
+    /// Unused by pipework.
     pub logical_height                  : Multiple16U32,
     /// The resource location defining what block to use for infiniburn.
+    ///
+    /// Unused by pipework.
     #[serde(rename = "infiniburn")]
     pub infiniburn_tag                  : TagIdent,
     /// Defines special dimensional effects.
@@ -82,11 +84,15 @@ pub struct DimensionType<'l> {
     pub is_piglin_safe                  : bool,
     /// whether players with the Bad Omen status effect will start raids.
     ///
-    /// Unused by this library.
+    /// Unused by pipework.
     pub has_raids                       : bool,
     /// The maximum light level for monster spawn attempts.
+    ///
+    /// Unused by pipework.
     pub monster_spawn_light_level       : LightLevelProvider<'l>,
     /// The maximum block light level for monster spawn attempts.
+    ///
+    /// Unused by pipework.
     pub monster_spawn_block_light_limit : LightLevel
 }
 

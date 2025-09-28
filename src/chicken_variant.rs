@@ -27,7 +27,7 @@ pub struct ChickenVariant {
     pub model            : Option<ChickenVariantModel>,
     /// Conditions required to spawn.
     ///
-    /// Unused by this library.
+    /// Unused by pipework.
     #[serde(skip_serializing)]
     pub spawn_conditions : IgnoredAny
 }

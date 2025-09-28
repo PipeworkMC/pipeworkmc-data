@@ -27,7 +27,7 @@ pub struct PigVariant {
     pub model            : Option<PigVariantModel>,
     /// Conditions required to spawn.
     ///
-    /// Unused by this library.
+    /// Unused by pipework.
     #[serde(skip_serializing)]
     pub spawn_conditions : IgnoredAny
 }

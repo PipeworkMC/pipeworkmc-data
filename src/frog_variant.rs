@@ -24,7 +24,7 @@ pub struct FrogVariant {
     pub texture_asset    : Ident,
     /// Conditions required to spawn.
     ///
-    /// Unused by this library.
+    /// Unused by pipework.
     #[serde(skip_serializing)]
     pub spawn_conditions : IgnoredAny
 }

@@ -81,7 +81,7 @@ impl SkinLayers {
     pub const NONE : Self = Self(0b00000000);
 
     /// Return the inner value as a primitive type.
-    #[inline(always)]
+    #[inline]
     pub const fn as_byte(&self) -> u8 { self.0 }
 
     /// The cape byte flag.
@@ -133,9 +133,9 @@ impl SkinLayers {
     /// Sets whether the hat flag is enabled.
     pub const fn set_hat(&mut self, enabled : bool) { self.set(Self::HAT, enabled); }
 
-    #[inline(always)]
+    #[inline]
     const fn get(&self, flag : u8) -> bool { (self.0 & flag) != 0 }
-    #[inline(always)]
+    #[inline]
     const fn set(&mut self, flag : u8, enabled : bool) {
         if (enabled) {
             self.0 |= flag;

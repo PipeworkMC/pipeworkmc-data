@@ -72,7 +72,7 @@ impl Ident {
     }
 
     /// Returns this identifier as a [`&str`](str).
-    #[inline(always)]
+    #[inline]
     pub fn as_str(&self) -> &str { &self.joined }
 
 }
@@ -98,7 +98,7 @@ impl Ident {
         unsafe { Self::new_unchecked_manual(joined, split_idx) }
     }
 
-    #[inline(always)]
+    #[inline]
     const unsafe fn new_unchecked_manual(joined : Cow<'static, str>, split_idx : usize) -> Self {
         Self { joined, split_idx }
     }
@@ -134,7 +134,7 @@ impl Ident {
 
     /// Creates a new identifier from a separated namespace and path,
     ///  returning and error if they are not valid parts of an identifier.
-    #[inline(always)]
+    #[inline]
     pub fn new_from_pair<N, P>(namespace : N, path : P) -> Result<Self, IdentValidateError>
     where
         N : AsRef<str>,
@@ -189,7 +189,7 @@ impl Ident {
         Ok(())
     }
 
-    #[inline(always)]
+    #[inline]
     const fn is_valid_component_char(ch : u8) -> bool {
         (ch >= b'a' && ch <= b'z') || (ch >= b'0' && ch <= b'9') || ch == b'.' || ch == b'-' || ch == b'_'
     }
@@ -208,14 +208,14 @@ impl TryFrom<Cow<'static, str>> for Ident {
 }
 impl TryFrom<&'static str> for Ident {
     type Error = IdentValidateError;
-    #[inline(always)]
+    #[inline]
     fn try_from(s : &'static str) -> Result<Self, Self::Error> {
         Self::try_from(Cow::Borrowed(s))
     }
 }
 impl TryFrom<String> for Ident {
     type Error = IdentValidateError;
-    #[inline(always)]
+    #[inline]
     fn try_from(s : String) -> Result<Self, Self::Error> {
         Self::try_from(Cow::Owned(s))
     }
@@ -263,12 +263,12 @@ impl PacketDecode for Ident {
 
 unsafe impl PacketEncode for Ident {
 
-    #[inline(always)]
+    #[inline]
     fn encode_len(&self) -> usize {
         self.joined.encode_len()
     }
 
-    #[inline(always)]
+    #[inline]
     unsafe fn encode(&self, buf : &mut EncodeBuf) { unsafe {
         self.joined.encode(buf)
     } }

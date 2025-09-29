@@ -71,7 +71,7 @@ impl TagIdent {
     }
 
     /// Returns this tag identifier as a [`&str`](str), including the `#` character.
-    #[inline(always)]
+    #[inline]
     pub fn as_str(&self) -> &str { &self.joined }
 
 }
@@ -98,7 +98,7 @@ impl TagIdent {
         unsafe { Self::new_unchecked_manual(joined, split_idx) }
     }
 
-    #[inline(always)]
+    #[inline]
     const unsafe fn new_unchecked_manual(joined : Cow<'static, str>, split_idx : usize) -> Self {
         Self { joined, split_idx }
     }
@@ -136,7 +136,7 @@ impl TagIdent {
     ///  returning and error if they are not valid parts of a tag identifier.
     ///
     /// The `#` character is added automatically. Neither the namespace or the path should contain it.
-    #[inline(always)]
+    #[inline]
     pub fn new_from_pair(namespace : &str, path : &str) -> Result<Self, TagIdentValidateError> {
         Self::try_from((namespace, path,))
     }
@@ -191,7 +191,7 @@ impl TagIdent {
         Ok(())
     }
 
-    #[inline(always)]
+    #[inline]
     const fn is_valid_component_char(ch : u8) -> bool {
         (ch >= b'a' && ch <= b'z') || (ch >= b'0' && ch <= b'9') || ch == b'.' || ch == b'-' || ch == b'_'
     }
@@ -209,14 +209,14 @@ impl TryFrom<Cow<'static, str>> for TagIdent {
 }
 impl TryFrom<&'static str> for TagIdent {
     type Error = TagIdentValidateError;
-    #[inline(always)]
+    #[inline]
     fn try_from(s : &'static str) -> Result<Self, Self::Error> {
         Self::try_from(Cow::Borrowed(s))
     }
 }
 impl TryFrom<String> for TagIdent {
     type Error = TagIdentValidateError;
-    #[inline(always)]
+    #[inline]
     fn try_from(s : String) -> Result<Self, Self::Error> {
         Self::try_from(Cow::Owned(s))
     }
@@ -264,12 +264,12 @@ impl PacketDecode for TagIdent {
 
 unsafe impl PacketEncode for TagIdent {
 
-    #[inline(always)]
+    #[inline]
     fn encode_len(&self) -> usize {
         self.joined.encode_len()
     }
 
-    #[inline(always)]
+    #[inline]
     unsafe fn encode(&self, buf : &mut EncodeBuf) { unsafe {
         self.joined.encode(buf)
     } }

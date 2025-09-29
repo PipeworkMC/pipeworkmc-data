@@ -25,16 +25,16 @@ pub struct CharacterId(u32);
 impl CharacterId {
 
     /// Create a new [`CharacterId`] with the next character ID.
-    #[inline(always)]
+    #[inline]
     pub fn next() -> Self { Self(NEXT_CHARACTER_ID.fetch_add(1, AtomicOrdering::Relaxed)) }
 
     /// Returns the inner value as a primitive type.
-    #[inline(always)]
+    #[inline]
     pub const fn as_u32(&self) -> u32 { self.0 }
 
 }
 
 impl Default for CharacterId {
-    #[inline(always)]
+    #[inline]
     fn default() -> Self { Self::next() }
 }

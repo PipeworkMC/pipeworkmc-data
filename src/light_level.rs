@@ -31,7 +31,7 @@ impl LightLevel {
     ///
     /// ### Safety
     /// The given value must be less than 16.
-    #[inline(always)]
+    #[inline]
     pub const unsafe fn new_unchecked(n : u8) -> Self {
         Self(n)
     }
@@ -51,7 +51,7 @@ impl SynDebug for LightLevel {
 
 
 impl Ser for LightLevel {
-    #[inline(always)]
+    #[inline]
     fn serialize<S>(&self, serer : S) -> Result<S::Ok, S::Error>
     where
         S : Serer
@@ -77,7 +77,7 @@ impl TryFrom<i8> for LightLevel {
 }
 impl TryFrom<u8> for LightLevel {
     type Error = ();
-    #[inline(always)]
+    #[inline]
     fn try_from(value : u8) -> Result<Self, Self::Error> {
         Self::new(value).ok_or(())
     }

@@ -34,9 +34,9 @@ where
     type Ok    = ();
     type Error = NbtSerError;
 
-    #[inline(always)]
+    #[inline]
     fn serialize_key<T>(&mut self, _ : &T) -> Result<(), Self::Error> where T : ?Sized + Ser { unreachable!() }
-    #[inline(always)]
+    #[inline]
     fn serialize_value<T>(&mut self, _ : &T) -> Result<(), Self::Error> where T : ?Sized + Ser { unreachable!() }
 
     fn serialize_entry<K, V>(&mut self, key : &K, value : &V) -> Result<(), Self::Error>

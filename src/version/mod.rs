@@ -55,19 +55,19 @@ impl Version {
 impl Version {
 
     /// The protocol ID of this version.
-    #[inline(always)]
+    #[inline]
     pub const fn id(self) -> u32 { self.id }
 
     /// The version or snapshot names supporting this protocol ID.
-    #[inline(always)]
+    #[inline]
     pub const fn names(self) -> &'static [&'static str] { self.names }
 
     /// The earliest version or snapshot name supporting this protocol ID.
-    #[inline(always)]
+    #[inline]
     pub const fn earliest_name(self) -> &'static str { self.names[0] }
 
     /// The latest version or snapshot name supporting this protocol ID.
-    #[inline(always)]
+    #[inline]
     pub const fn latest_name(self) -> &'static str { self.names.last().unwrap() }
 
 }

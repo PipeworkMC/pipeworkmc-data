@@ -159,7 +159,7 @@ pub enum BoundedStringDecodeError {
     Utf8(Utf8Error)
 }
 impl From<IncompleteDecodeError> for BoundedStringDecodeError {
-    #[inline(always)]
+    #[inline]
     fn from(err : IncompleteDecodeError) -> Self { Self::Incomplete(err) }
 }
 impl Display for BoundedStringDecodeError {

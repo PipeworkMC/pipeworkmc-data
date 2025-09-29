@@ -28,7 +28,7 @@ pub struct Rgb {
 impl Rgb {
 
     /// Create a new [`Rgb`] from a red, green, and blue value.
-    #[inline(always)]
+    #[inline]
     pub const fn new(r : u8, g : u8, b : u8) -> Self {
         Self { r, g, b }
     }
@@ -44,7 +44,7 @@ impl Rgb {
     }
 
     /// Create a new greyscale [`Rgb`] with a brightness.
-    #[inline(always)]
+    #[inline]
     pub const fn splat(v : u8) -> Self {
         Self { r : v, g : v, b : v }
     }
@@ -123,13 +123,13 @@ impl Rgb {
 impl Rgb {
 
     /// Convert this [`Rgb`] to an [`Argb`] with the given alpha.
-    #[inline(always)]
+    #[inline]
     pub const fn with_alpha(self, a : u8) -> Argb {
         Argb { a, r : self.r, g : self.g, b : self.b }
     }
 
     /// Convert this [`Rgb`] to a fully opaque [`Argb`].
-    #[inline(always)]
+    #[inline]
     pub const fn opaque(self) -> Argb {
         Argb { a : 255, r : self.r, g : self.g, b : self.b }
     }
@@ -193,7 +193,7 @@ pub struct Argb {
 impl Argb {
 
     /// Create a new [`Argb`] from an alpha, red, green, and blue value.
-    #[inline(always)]
+    #[inline]
     pub const fn new(a : u8, r : u8, g : u8, b : u8) -> Self {
         Self { a, r, g, b }
     }
@@ -210,7 +210,7 @@ impl Argb {
     }
 
     /// Create a new greyscale [`Argb`] with an alpha and brightness.
-    #[inline(always)]
+    #[inline]
     pub const fn splat(a : u8, v : u8) -> Self {
         Self { a, r : v, g : v, b : v }
     }
@@ -275,7 +275,7 @@ impl Argb {
 impl Argb {
 
     /// Convert this [`Argb`] to an [`Rgb`] by removing the alpha.
-    #[inline(always)]
+    #[inline]
     pub const fn without_alpha(self) -> Rgb {
         Rgb { r : self.r, g : self.g, b : self.b }
     }
@@ -307,7 +307,7 @@ impl Argb {
 }
 
 impl From<Rgb> for Argb {
-    #[inline(always)]
+    #[inline]
     fn from(value : Rgb) -> Self { value.opaque() }
 }
 

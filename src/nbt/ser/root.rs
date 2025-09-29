@@ -144,11 +144,11 @@ where
         todo!() // TODO: BArray
     }
 
-    #[inline(always)]
+    #[inline]
     fn serialize_none(self) -> Result<Self::Ok, Self::Error> {
         Ok(())
     }
-    #[inline(always)]
+    #[inline]
     fn serialize_some<T>(self, v : &T) -> Result<Self::Ok, Self::Error>
     where
         T : ?Sized + Ser
@@ -162,7 +162,7 @@ where
         todo!()
     }
 
-    #[inline(always)]
+    #[inline]
     fn serialize_unit_variant(
         self,
         _name          : &'static str,

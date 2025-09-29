@@ -16,7 +16,7 @@ pub struct Redacted<T> {
 }
 
 impl<T> From<T> for Redacted<T> {
-    #[inline(always)]
+    #[inline]
     fn from(inner : T) -> Self {
         Self { inner : ManuallyDrop::new(inner) }
     }
@@ -28,21 +28,21 @@ impl<T> Redacted<T> {
     ///
     /// ### Safety
     /// Though this function is not inherently unsafe, it can leak the `Debug` and `Display` implementations.
-    #[inline(always)]
+    #[inline]
     pub unsafe fn as_ref(&self) -> &T { &self.inner }
 
     /// Returns a mutable reference to the inner value.
     ///
     /// ### Safety
     /// Though this function is not inherently unsafe, it can leak the `Debug` and `Display` implementations.
-    #[inline(always)]
+    #[inline]
     pub unsafe fn as_mut(&mut self) -> &mut T { &mut self.inner }
 
     /// Returns the inner value.
     ///
     /// ### Safety
     /// Though this function is not inherently unsafe, it can leak the `Debug` and `Display` implementations.
-    #[inline(always)]
+    #[inline]
     pub unsafe fn into_inner(mut self) -> T {
         let inner = unsafe { ManuallyDrop::take(&mut self.inner) };
         mem::forget(self);

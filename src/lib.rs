@@ -55,12 +55,12 @@ pub use syndebug;
 pub use disqualified;
 
 
-#[inline(always)]
+#[inline]
 pub(crate) fn slice_is_empty<T>(slice : &[T]) -> bool {
     slice.is_empty()
 }
 
-#[inline(always)]
+#[inline]
 pub(crate) fn is_default<T>(value : &T) -> bool
 where
     T : Default + PartialEq

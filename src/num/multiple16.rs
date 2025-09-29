@@ -44,7 +44,7 @@ impl<T> Debug for Multiple16<T>
 where
     T : Multiple16ablePrimitive
 {
-    #[inline(always)]
+    #[inline]
     fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result {
         <T as Debug>::fmt(&self.0, f)
     }
@@ -54,7 +54,7 @@ impl<T> Display for Multiple16<T>
 where
     T : Multiple16ablePrimitive
 {
-    #[inline(always)]
+    #[inline]
     fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result {
         <T as Display>::fmt(&self.0, f)
     }
@@ -64,7 +64,7 @@ impl<T> SynDebug for Multiple16<T>
 where
     T : Multiple16ablePrimitive
 {
-    #[inline(always)]
+    #[inline]
     fn fmt(&self, f : &mut Formatter<'_>, _const_like : bool) -> fmt::Result {
         write!(f, "Multiple16::<{}>::new({:?}).unwrap()", ShortName::of::<T>(), self.0)
     }
@@ -74,7 +74,7 @@ impl<T> Ser for Multiple16<T>
 where
     T : Multiple16ablePrimitive
 {
-    #[inline(always)]
+    #[inline]
     fn serialize<S>(&self, serer : S) -> Result<S::Ok, S::Error>
     where
         S : Serer
@@ -85,7 +85,7 @@ impl<'de, T> Deser<'de> for Multiple16<T>
 where
     T : Multiple16ablePrimitive
 {
-    #[inline(always)]
+    #[inline]
     fn deserialize<D>(deserer : D) -> Result<Self, D::Error>
     where
         D : Deserer<'de>
@@ -119,12 +119,12 @@ macro_rules! impl_multiple_16able_primitive_for {
                 } else { None }
             }
 
-            #[inline(always)]
+            #[inline]
             pub const unsafe fn new_unchecked(n : $ty) -> Self {
                 Self(n)
             }
 
-            #[inline(always)]
+            #[inline]
             pub const fn get(self) -> $ty { self.0 }
 
         }

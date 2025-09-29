@@ -46,7 +46,7 @@ pub enum NbtSerError {
     Custom(String)
 }
 impl From<io::Error> for NbtSerError {
-    #[inline(always)]
+    #[inline]
     fn from(err : io::Error) -> Self {
         Self::Io(err)
     }

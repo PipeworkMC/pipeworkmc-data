@@ -26,7 +26,7 @@ impl BlockPos {
 
 unsafe impl PacketEncode for BlockPos {
 
-    #[inline(always)]
+    #[inline]
     fn encode_len(&self) -> usize { 8 }
 
     unsafe fn encode(&self, buf : &mut EncodeBuf) { unsafe {
@@ -48,7 +48,7 @@ pub struct DimBlockPos {
 
 unsafe impl PacketEncode for DimBlockPos {
 
-    #[inline(always)]
+    #[inline]
     fn encode_len(&self) -> usize {
         self.dim.encode_len()
         + self.pos.encode_len()

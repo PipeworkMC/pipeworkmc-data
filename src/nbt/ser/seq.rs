@@ -35,13 +35,13 @@ where
     type Ok    = ();
     type Error = NbtSerError;
 
-    #[inline(always)]
+    #[inline]
     fn serialize_element<T>(&mut self, value : &T) -> Result<(), Self::Error>
     where
         T : ?Sized + Ser
     { SerTuple::serialize_element(self, value) }
 
-    #[inline(always)]
+    #[inline]
     fn end(self) -> Result<Self::Ok, Self::Error> {
         SerTuple::end(self)
     }

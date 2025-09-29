@@ -207,7 +207,7 @@ impl TextComponent {
     };
 }
 impl Default for TextComponent {
-    #[inline(always)]
+    #[inline]
     fn default() -> Self { Self::EMPTY }
 }
 impl From<&'static str> for TextComponent {
@@ -252,7 +252,7 @@ impl TextStyle {
     };
 }
 impl Default for TextStyle {
-    #[inline(always)]
+    #[inline]
     fn default() -> Self { Self::EMPTY }
 }
 
@@ -453,56 +453,56 @@ impl<T> TextFormatted for T
 where
     TextComponent : From<T>
 {
-    #[inline(always)]
+    #[inline]
     fn colour<C>(self, colour : C) -> Text
     where C : Into<Rgb> { Text::from(self).colour(colour) }
-    #[inline(always)]
+    #[inline]
     fn font<R>(self, resource : R) -> Text
     where R : Into<Ident> { Text::from(self).font(resource) }
-    #[inline(always)]
+    #[inline]
     fn no_font(self) -> Text { Text::from(self).no_font() }
-    #[inline(always)]
+    #[inline]
     fn bold(self) -> Text { Text::from(self).bold() }
-    #[inline(always)]
+    #[inline]
     fn no_bold(self) -> Text { Text::from(self).no_bold() }
-    #[inline(always)]
+    #[inline]
     fn italic(self) -> Text { Text::from(self).italic() }
-    #[inline(always)]
+    #[inline]
     fn no_italic(self) -> Text { Text::from(self).no_italic() }
-    #[inline(always)]
+    #[inline]
     fn underline(self) -> Text { Text::from(self).underline() }
-    #[inline(always)]
+    #[inline]
     fn no_underline(self) -> Text { Text::from(self).no_underline() }
-    #[inline(always)]
+    #[inline]
     fn strike(self) -> Text { Text::from(self).strike() }
-    #[inline(always)]
+    #[inline]
     fn no_strike(self) -> Text { Text::from(self).no_strike() }
-    #[inline(always)]
+    #[inline]
     fn obfuscate(self) -> Text { Text::from(self).obfuscate() }
-    #[inline(always)]
+    #[inline]
     fn no_obfuscate(self) -> Text { Text::from(self).no_obfuscate() }
-    #[inline(always)]
+    #[inline]
     fn shadow<C>(self, colour : C) -> Text
     where C : Into<Argb> { Text::from(self).shadow(colour) }
-    #[inline(always)]
+    #[inline]
     fn no_shadow(self) -> Text { Text::from(self).no_shadow() }
-    #[inline(always)]
+    #[inline]
     fn default_shadow(self) -> Text { Text::from(self).default_shadow() }
-    #[inline(always)]
+    #[inline]
     fn insertion<S>(self, text : S) -> Text
     where S : Into<Cow<'static, str>> { Text::from(self).insertion(text) }
-    #[inline(always)]
+    #[inline]
     fn no_insertion(self) -> Text { Text::from(self).no_insertion() }
-    #[inline(always)]
+    #[inline]
     fn on_click(self, action : Action) -> Text { Text::from(self).on_click(action) }
-    #[inline(always)]
+    #[inline]
     fn no_on_click(self) -> Text { Text::from(self).no_on_click() }
-    #[inline(always)]
+    #[inline]
     fn tooltip<S>(self, text : S) -> Text
     where S : Into<Text> { Text::from(self).tooltip(text) }
-    #[inline(always)]
+    #[inline]
     fn no_tooltip(self) -> Text { Text::from(self).no_tooltip() }
-    #[inline(always)]
+    #[inline]
     fn reset(self) -> Text { Text::from(self).reset() }
 }
 
@@ -512,7 +512,7 @@ where
     T : Into<Text>
 {
     type Output = Text;
-    #[inline(always)]
+    #[inline]
     fn add(mut self, rhs : T) -> Self::Output {
         self += rhs;
         self

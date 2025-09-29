@@ -7,7 +7,7 @@ use bevy_ecs::component::Component;
 /// A player game mode.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default, Component)]
 #[repr(u8)]
-pub enum GameMode { // TODO: Detect changes and set player game mode.
+pub enum GameMode {
     /// Survival
     Survival  = 0,
     /// Creative

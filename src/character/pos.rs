@@ -1,3 +1,4 @@
+use crate::chunk_pos::ChunkPos;
 use bevy_ecs::component::Component;
 
 
@@ -15,6 +16,12 @@ pub struct CharacterPos {
 impl CharacterPos {
     /// A [`CharacterPos`] with all lanes set to 0.0.
     pub const ZERO : Self = Self { x : 0.0, y : 0.0, z : 0.0 };
+
+    /// Returns the position of the chunk that this character position falls into.
+    pub fn chunk(self) -> ChunkPos { ChunkPos {
+        x : self.x.div_euclid(16.0) as i32,
+        z : self.z.div_euclid(16.0) as i32
+    } }
 }
 
 

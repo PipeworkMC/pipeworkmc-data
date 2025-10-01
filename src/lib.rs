@@ -22,6 +22,7 @@ pub mod cat_variant;
 pub mod channel_data;
 pub mod character;
 pub mod chicken_variant;
+pub mod chunk_pos;
 pub mod client_info;
 pub mod colour;
 pub mod cow_variant;

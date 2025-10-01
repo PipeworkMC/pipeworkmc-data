@@ -1,7 +1,10 @@
 //! Block positions.
 
 
-use crate::ident::Ident;
+use crate::{
+    chunk_pos::ChunkPos,
+    ident::Ident
+};
 use pipeworkmc_codec::encode::{
     PacketEncode,
     EncodeBuf
@@ -22,6 +25,12 @@ pub struct BlockPos {
 impl BlockPos {
     /// A [`BlockPos`] with all lanes set to 0.
     pub const ZERO : Self = Self { x : 0, y : 0, z : 0 };
+
+    /// Returns the position of the chunk that this block position falls into.
+    pub const fn chunk(self) -> ChunkPos { ChunkPos {
+        x : self.x.div_euclid(16),
+        z : self.z.div_euclid(16)
+    } }
 }
 
 unsafe impl PacketEncode for BlockPos {

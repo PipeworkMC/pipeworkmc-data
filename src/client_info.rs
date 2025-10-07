@@ -14,9 +14,13 @@ use crate::{
 use pipeworkmc_codec::decode::{
     PacketDecode,
     DecodeIter,
-    IncompleteDecodeError
+    IncompleteDecodeError,
+    num::NonZeroDecodeError
 };
-use core::fmt::{ self, Debug, Display, Formatter };
+use core::{
+    fmt::{ self, Debug, Display, Formatter },
+    num::NonZeroU8
+};
 
 
 /// Client settings.
@@ -26,7 +30,7 @@ pub struct ClientInfo {
     /// Selected language code.
     pub locale             : BoundedString<16>,
     /// View distance in chunks.
-    pub view_dist          : u8, // TODO: Make NonZeroU8
+    pub view_dist          : NonZeroU8,
     /// Enabled chat message types.
     pub chat_mode          : ChatMode,
     /// Whether chat colours are enabled.
@@ -212,7 +216,7 @@ pub enum ClientInfoDecodeError {
     /// The locale failed to decode.
     Locale(BoundedStringDecodeError),
     /// The view distance failed to decode.
-    ViewDist(IncompleteDecodeError),
+    ViewDist(NonZeroDecodeError<u8>),
     /// The chat mode failed to decode.
     ChatMode(VarIntDecodeError),
     /// The chat mode was not valid.

@@ -50,6 +50,7 @@ pub mod pig_variant;
 pub mod profile;
 pub mod redacted;
 pub mod registry_entry;
+pub mod selected_hotbar;
 pub mod tag_ident;
 pub mod text;
 pub mod version;

@@ -41,6 +41,7 @@ pub mod known_pack;
 pub mod light_level;
 pub mod nbt;
 pub mod num;
+pub mod operator_level;
 pub mod pack_status;
 pub mod painting_variant;
 pub mod particle;

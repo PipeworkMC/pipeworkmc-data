@@ -22,10 +22,16 @@ use core::{
     ptr
 };
 use std::str::Utf8Error;
-use serde::de::{
-    Deserialize as Deser,
-    Deserializer as Deserer,
-    Error as _
+use serde::{
+    ser::{
+        Serialize as Ser,
+        Serializer as Serer
+    },
+    de::{
+        Deserialize as Deser,
+        Deserializer as Deserer,
+        Error as _
+    }
 };
 
 
@@ -108,6 +114,12 @@ impl<const MAX_LEN : usize> TryFrom<&str> for BoundedString<MAX_LEN> {
     }
 }
 
+impl<const MAX_LEN : usize> Ser for BoundedString<MAX_LEN> {
+    fn serialize<S>(&self, serer : S) -> Result<S::Ok, S::Error>
+    where
+        S : Serer
+    { <&str as Ser>::serialize(&&**self, serer) }
+}
 
 impl<'de, const MAX_LEN : usize> Deser<'de> for BoundedString<MAX_LEN> {
     fn deserialize<D>(deserer : D) -> Result<Self, D::Error>

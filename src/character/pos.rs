@@ -1,4 +1,9 @@
 use crate::chunk_pos::ChunkPos;
+use pipeworkmc_codec::decode::{
+    PacketDecode,
+    DecodeIter,
+    IncompleteDecodeError
+};
 
 
 /// The position of a character.
@@ -69,4 +74,18 @@ pub struct CharacterMoveFlags {
     pub on_ground    : bool,
     /// Whether the character is pushing against a wall.
     pub against_wall : bool
+}
+
+impl PacketDecode for CharacterMoveFlags {
+    type Error = IncompleteDecodeError;
+    fn decode<I>(iter : &mut DecodeIter<I>) -> Result<Self, Self::Error>
+    where
+        I : ExactSizeIterator<Item = u8>
+    {
+        let b = iter.read()?;
+        Ok(Self {
+            on_ground    : (b & 0b00000001) != 0,
+            against_wall : (b & 0b00000010) != 0
+        })
+    }
 }

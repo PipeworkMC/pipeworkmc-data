@@ -49,7 +49,7 @@ pub struct ClientInfo {
 impl Default for ClientInfo {
     fn default() -> Self { Self {
         locale             : unsafe { BoundedString::new_unchecked("en_us") },
-        view_dist          : 2,
+        view_dist          : unsafe { NonZeroU8::new_unchecked(2) },
         chat_mode          : ChatMode::Enabled,
         chat_colours       : false,
         skin_layers        : SkinLayers::ALL,

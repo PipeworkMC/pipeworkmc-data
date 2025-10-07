@@ -5,10 +5,11 @@ use bevy_ecs::component::Component;
 
 
 /// A player's operator permission level.
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Component)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Component)]
 #[repr(u8)]
 pub enum OperatorLevel {
     /// No permissions.
+    #[default]
     All        = 0,
     /// Bypass spawn permission.
     Moderator  = 1,

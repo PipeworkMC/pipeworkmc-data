@@ -17,14 +17,15 @@ use syndebug::SynDebug;
 
 /// Similar to [`Cow`](std::borrow::Cow), but within a [`Box`].
 #[derive(Debug, Clone)]
-pub enum BoxCow<'l, B>
+pub enum BoxCow<'l, B, O = B>
 where
-    B : Clone + 'l
+    B : ?Sized,
+    O : ?Sized
 {
     /// Borrowed data.
     Borrowed(&'l B),
     /// Owned data.
-    Owned(Box<B>)
+    Owned(Box<O>)
 }
 
 

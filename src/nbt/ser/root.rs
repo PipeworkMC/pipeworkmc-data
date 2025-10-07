@@ -26,9 +26,9 @@ where
     W : Write
 {
 
-    pub(super) fn new(writer : &'l mut W, tag_write : TagWrite<'k>) -> Self { Self {
-        writer, tag_write
-    } }
+    pub(super) fn new(writer : &'l mut W, tag_write : TagWrite<'k>) -> Self {
+        Self { writer, tag_write }
+    }
 
     fn handle_tag_write(self : &mut &mut Self, tag : u8) -> io::Result<()> { match (&self.tag_write) {
         TagWrite::None => Ok(()),
@@ -154,12 +154,13 @@ where
         T : ?Sized + Ser
     { v.serialize(self) }
 
-    fn serialize_unit(self) -> Result<Self::Ok, Self::Error> {
-        panic!("NBT serialiser does not support `()`");
+    fn serialize_unit(mut self) -> Result<Self::Ok, Self::Error> {
+        (&mut self).handle_tag_write(tag::END)?;
+        Ok(())
     }
 
-    fn serialize_unit_struct(self, _ : &'static str) -> Result<Self::Ok, Self::Error> {
-        todo!()
+    fn serialize_unit_struct(self, _name : &'static str) -> Result<Self::Ok, Self::Error> {
+        unreachable!("unit structs are not supported by the NBT serialiser");
     }
 
     #[inline]
@@ -193,7 +194,7 @@ where
     where
         T : ?Sized + Ser
     {
-        todo!()
+        unreachable!("newtype variants are not supported by the NBT serialiser");
     }
 
     fn serialize_seq(self, len : Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
@@ -211,7 +212,7 @@ where
         _name : &'static str,
         _len  : usize,
     ) -> Result<Self::SerializeTupleStruct, Self::Error> {
-        todo!()
+        unreachable!("tuple structs are not supported by the NBT serialiser");
     }
 
     fn serialize_tuple_variant(
@@ -221,7 +222,7 @@ where
         _variant       : &'static str,
         _len           : usize,
     ) -> Result<Self::SerializeTupleVariant, Self::Error> {
-        todo!()
+        unreachable!("tuple variants are not supported by the NBT serialiser");
     }
 
     fn serialize_map(mut self, _ : Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
@@ -245,7 +246,7 @@ where
         _variant       : &'static str,
         _len           : usize,
     ) -> Result<Self::SerializeStructVariant, Self::Error> {
-        todo!()
+        unreachable!("struct variants are not supported by the NBT serialiser");
     }
 
 }

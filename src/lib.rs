@@ -7,7 +7,10 @@
     const_precise_live_drops,
 
     // Syntax
-    decl_macro
+    decl_macro,
+
+    // Standard Library
+    maybe_uninit_slice
 
 )]
 
@@ -37,6 +40,7 @@ pub mod known_pack;
 pub mod light_level;
 pub mod nbt;
 pub mod num;
+pub mod pack_status;
 pub mod painting_variant;
 pub mod particle;
 pub mod pig_variant;

@@ -1,11 +1,9 @@
 //! Player operator permission levels.
 
 
-use bevy_ecs::component::Component;
-
-
 /// A player's operator permission level.
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Component)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default)]
+#[cfg_attr(feature = "bevy", derive(bevy_ecs::component::Component))]
 #[repr(u8)]
 pub enum OperatorLevel {
     /// No permissions.

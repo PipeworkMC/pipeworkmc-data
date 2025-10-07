@@ -10,7 +10,6 @@ use pipeworkmc_codec::encode::{
     PacketEncode,
     EncodeBuf
 };
-use bevy_ecs::component::Component;
 use serde::Deserialize as Deser;
 
 
@@ -18,8 +17,9 @@ mod deser;
 
 
 /// A player account profile.
-#[derive(Clone, Component, Debug)]
-#[component(immutable)]
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "bevy", derive(bevy_ecs::component::Component))]
+#[cfg_attr(feature = "bevy", component(immutable))]
 pub struct AccountProfile {
     /// The player account UUID.
     pub uuid     : Uuid,

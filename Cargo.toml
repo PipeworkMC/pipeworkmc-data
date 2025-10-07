@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [features]
+bevy      = [ "dep:bevy_ecs" ]
 generated = [ ]
 
 [lints.rust]
@@ -17,7 +18,8 @@ path = "../pipeworkmc-codec"
 # ECS
 
 [dependencies.bevy_ecs]
-version = "0.17"
+version  = "0.17"
+optional = true
 
 # Serialisation & Zeroise
 

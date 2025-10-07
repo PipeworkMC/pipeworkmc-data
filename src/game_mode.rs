@@ -7,11 +7,11 @@ use pipeworkmc_codec::decode::{
     IncompleteDecodeError
 };
 use core::fmt::{ self, Display, Formatter };
-use bevy_ecs::component::Component;
 
 
 /// A player game mode.
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default, Component)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default)]
+#[cfg_attr(feature = "bevy", derive(bevy_ecs::component::Component))]
 #[repr(u8)]
 pub enum GameMode {
     /// Survival

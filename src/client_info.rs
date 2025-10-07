@@ -17,11 +17,11 @@ use pipeworkmc_codec::decode::{
     IncompleteDecodeError
 };
 use core::fmt::{ self, Debug, Display, Formatter };
-use bevy_ecs::component::Component;
 
 
 /// Client settings.
-#[derive(Clone, Component, Debug)]
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "bevy", derive(bevy_ecs::component::Component))]
 pub struct ClientInfo {
     /// Selected language code.
     pub locale             : BoundedString<16>,

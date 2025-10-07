@@ -1,9 +1,9 @@
 use crate::chunk_pos::ChunkPos;
-use bevy_ecs::component::Component;
 
 
 /// The position of a character.
-#[derive(Clone, Copy, PartialEq, Component, Debug, Default)]
+#[derive(Clone, Copy, PartialEq, Debug, Default)]
+#[cfg_attr(feature = "bevy", derive(bevy_ecs::component::Component))]
 pub struct CharacterPos {
     /// X
     pub x : f64,
@@ -26,7 +26,8 @@ impl CharacterPos {
 
 
 /// The rotation of a character.
-#[derive(Clone, Copy, PartialEq, Component, Debug, Default)]
+#[derive(Clone, Copy, PartialEq, Debug, Default)]
+#[cfg_attr(feature = "bevy", derive(bevy_ecs::component::Component))]
 pub struct CharacterRot {
     /// Pitch
     pub pitch    : f64,
@@ -43,7 +44,8 @@ impl CharacterRot {
 
 
 /// The velocity of a character.
-#[derive(Clone, Copy, PartialEq, Component, Debug, Default)]
+#[derive(Clone, Copy, PartialEq, Debug, Default)]
+#[cfg_attr(feature = "bevy", derive(bevy_ecs::component::Component))]
 pub struct CharacterVel {
     /// X
     pub x : f64,

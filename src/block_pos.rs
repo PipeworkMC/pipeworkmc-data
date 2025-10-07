@@ -5,9 +5,16 @@ use crate::{
     chunk_pos::ChunkPos,
     ident::Ident
 };
-use pipeworkmc_codec::encode::{
-    PacketEncode,
-    EncodeBuf
+use pipeworkmc_codec::{
+    decode::{
+        PacketDecode,
+        DecodeIter,
+        IncompleteDecodeError
+    },
+    encode::{
+        PacketEncode,
+        EncodeBuf
+    }
 };
 
 
@@ -17,7 +24,7 @@ pub struct BlockPos {
     /// X
     pub x : i32,
     /// Y
-    pub y : i16,
+    pub y : i32,
     /// Z
     pub z : i32
 }
@@ -31,6 +38,21 @@ impl BlockPos {
         x : self.x.div_euclid(16),
         z : self.z.div_euclid(16)
     } }
+}
+
+impl PacketDecode for BlockPos {
+    type Error = IncompleteDecodeError;
+    fn decode<I>(iter : &mut DecodeIter<I>) -> Result<Self, Self::Error>
+    where
+        I : ExactSizeIterator<Item = u8>
+    {
+        let v = <u64>::decode(iter)?;
+        Ok(Self {
+            x : ((v >> 38) & 0x3FFFFFF) as i32,
+            z : ((v >> 12) & 0x3FFFFFF) as i32,
+            y : (v & 0xFFF) as i32
+        })
+    }
 }
 
 unsafe impl PacketEncode for BlockPos {

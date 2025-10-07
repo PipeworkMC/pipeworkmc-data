@@ -35,6 +35,7 @@ pub mod difficulty;
 pub mod dimension_type;
 pub mod frog_variant;
 pub mod game_mode;
+pub mod hand;
 pub mod ident;
 pub mod item_stack;
 pub mod known_pack;

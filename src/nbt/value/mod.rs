@@ -11,7 +11,7 @@ use serde::de::{
 
 
 /// An NBT element.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum NbtElement<'l> {
     /// `()`
     Unit,

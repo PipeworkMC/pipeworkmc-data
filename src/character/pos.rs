@@ -59,3 +59,14 @@ impl CharacterVel {
     /// A [`CharacterVel`] with all lanes set to 0.0.
     pub const ZERO : Self = Self { x : 0.0, y : 0.0, z : 0.0 };
 }
+
+
+/// The movement flags of a character.
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
+#[cfg_attr(feature = "bevy", derive(bevy_ecs::component::Component))]
+pub struct CharacterMoveFlags {
+    /// Whether the character is on the ground.
+    pub on_ground    : bool,
+    /// Whether the character is pushing against a wall.
+    pub against_wall : bool
+}

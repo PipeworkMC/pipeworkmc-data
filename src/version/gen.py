@@ -1,3 +1,6 @@
+# TODO: Move this into vanilla_datagen
+
+
 import requests
 
 page = requests.get("https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol_version_numbers")

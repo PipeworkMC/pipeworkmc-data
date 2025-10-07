@@ -8,10 +8,10 @@ pub struct Version {
     names : &'static [&'static str]
 }
 
-impl Version {
+#[cfg(feature = "generated")]
+include!("../../../pipeworkmc-vanilla-datagen/output/generated/version.rs");
 
-    /// The current version supported by pipework.
-    pub const CURRENT : Self = Self::by_id(772).unwrap(); // TODO: Check against current datagen
+impl Version {
 
     /// Get version information by protocol ID.
     pub const fn by_id(id : u32) -> Option<Self> {

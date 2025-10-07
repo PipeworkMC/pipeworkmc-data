@@ -3,12 +3,16 @@ use core::{
     error::Error as StdError,
     fmt::{ self, Display, Formatter }
 };
-use std::io;
-use serde::de::Error as DeserError;
+use std::io::{ self, Read };
+use serde::de::{
+    Error as DeserError,
+    Deserialize as Deser
+};
 use cesu8::Cesu8DecodingError;
 
 
 mod root;
+use root::{ NbtRootDeserer, TagRead };
 
 
 /// Errors emitted while deserialising NBT as a value.
@@ -35,7 +39,7 @@ impl From<io::Error> for NbtDeserError {
 impl From<Cesu8DecodingError> for NbtDeserError {
     #[inline]
     fn from(err : Cesu8DecodingError) -> Self {
-        Self::BadString(Cesu8DecodingError)
+        Self::BadString(err)
     }
 }
 
@@ -56,4 +60,14 @@ impl DeserError for NbtDeserError {
     {
         Self::Custom(format!("{msg}"))
     }
+}
+
+
+/// Deserialise network NBT as a value.
+pub fn from_network<R, T>(mut reader : R) -> Result<T, NbtDeserError>
+where
+            R : Read,
+    for<'l> T : Deser<'l>
+{
+    T::deserialize(&mut NbtRootDeserer::new(&mut reader, TagRead::Tag))
 }

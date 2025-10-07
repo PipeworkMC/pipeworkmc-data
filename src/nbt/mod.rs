@@ -22,6 +22,6 @@ mod tag {
     pub const STRING   : u8 = 8;
     pub const LIST     : u8 = 9;
     pub const COMPOUND : u8 = 10;
-    pub const IARRAY   : u8 = 11; // TODO: Serialiser
-    pub const LARRAY   : u8 = 12; // TODO: Serialiser
+    // pub const IARRAY   : u8 = 11; // TODO: Serialiser
+    // pub const LARRAY   : u8 = 12; // TODO: Serialiser
 }

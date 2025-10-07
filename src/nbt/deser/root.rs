@@ -270,7 +270,7 @@ where
         visitor.visit_byte_buf(self.read_barray()?)
     }
 
-    fn deserialize_option<V>(self, visitor : V) -> Result<V::Value, Self::Error>
+    fn deserialize_option<V>(self, _visitor : V) -> Result<V::Value, Self::Error>
     where
         V : Visitor<'de>
     {
@@ -307,13 +307,13 @@ where
         unreachable!("newtype structs are not supported by the NBT deserialiser");
     }
 
-    fn deserialize_seq<V>(self, visitor : V) -> Result<V::Value, Self::Error>
+    fn deserialize_seq<V>(self, _visitor : V) -> Result<V::Value, Self::Error>
     where
         V : Visitor<'de> {
         todo!()
     }
 
-    fn deserialize_tuple<V>(self, len : usize, visitor : V) -> Result<V::Value, Self::Error>
+    fn deserialize_tuple<V>(self, _len : usize, _visitor : V) -> Result<V::Value, Self::Error>
     where
         V : Visitor<'de> {
         todo!()
@@ -331,7 +331,7 @@ where
         unreachable!("tuple structs are not supported by the NBT deserialiser");
     }
 
-    fn deserialize_map<V>(self, visitor : V) -> Result<V::Value, Self::Error>
+    fn deserialize_map<V>(self, _visitor : V) -> Result<V::Value, Self::Error>
     where
         V : Visitor<'de>
     {
@@ -340,9 +340,9 @@ where
 
     fn deserialize_struct<V>(
         self,
-        name    : &'static str,
-        fields  : &'static [&'static str],
-        visitor : V,
+        _name    : &'static str,
+        _fields  : &'static [&'static str],
+        _visitor : V,
     ) -> Result<V::Value, Self::Error>
     where
         V : Visitor<'de> {
@@ -351,9 +351,9 @@ where
 
     fn deserialize_enum<V>(
         self,
-        name     : &'static str,
-        variants : &'static [&'static str],
-        visitor  : V,
+        _name     : &'static str,
+        _variants : &'static [&'static str],
+        _visitor  : V,
     ) -> Result<V::Value, Self::Error>
     where
         V : Visitor<'de>

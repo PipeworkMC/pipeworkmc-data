@@ -31,6 +31,7 @@ pub mod colour;
 pub mod cow_variant;
 pub mod damage_type;
 pub mod dialog;
+pub mod difficulty;
 pub mod dimension_type;
 pub mod frog_variant;
 pub mod game_mode;

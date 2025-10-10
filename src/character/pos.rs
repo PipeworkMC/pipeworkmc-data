@@ -1,9 +1,5 @@
 use crate::chunk_pos::ChunkPos;
-use pipeworkmc_codec::decode::{
-    PacketDecode,
-    DecodeIter,
-    IncompleteDecodeError
-};
+use netzer::prelude::*;
 
 
 /// The position of a character.
@@ -76,13 +72,21 @@ pub struct CharacterMoveFlags {
     pub against_wall : bool
 }
 
-impl PacketDecode for CharacterMoveFlags {
-    type Error = IncompleteDecodeError;
-    fn decode<I>(iter : &mut DecodeIter<I>) -> Result<Self, Self::Error>
-    where
-        I : ExactSizeIterator<Item = u8>
-    {
-        let b = iter.read()?;
+impl NetEncode<crate::Minecraft> for CharacterMoveFlags {
+    async fn encode<W : netzer::AsyncWrite>(&self, mut writer : W) -> netzer::Result {
+        writer.write_all(&[
+            (if (self.on_ground) { 0b00000001 } else { 0u8 })
+            | (if (self.against_wall) { 0b00000010 } else { 0u8 })
+        ]).await?;
+        Ok(())
+    }
+}
+
+impl NetDecode<crate::Minecraft> for CharacterMoveFlags {
+    async fn decode<R : netzer::AsyncRead>(mut reader : R) -> netzer::Result<Self> {
+        let mut buf = [0u8];
+        reader.read_exact(&mut buf).await?;
+        let b = buf[0];
         Ok(Self {
             on_ground    : (b & 0b00000001) != 0,
             against_wall : (b & 0b00000010) != 0

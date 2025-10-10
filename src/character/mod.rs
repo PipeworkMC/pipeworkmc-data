@@ -1,16 +1,7 @@
 //! Character data.
 
 
-use pipeworkmc_codec::{
-    decode::{
-        PacketDecode,
-        DecodeIter
-    },
-    varint::{
-        VarInt,
-        VarIntDecodeError
-    }
-};
+use netzer::prelude::*;
 
 
 #[cfg(feature = "generated")]
@@ -21,15 +12,8 @@ pub use pos::*;
 
 
 /// A character's networked ID used to track and update the character later.
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
-pub struct CharacterId(pub u32);
-
-impl PacketDecode for CharacterId {
-    type Error = VarIntDecodeError;
-
-    #[inline]
-    fn decode<I>(iter : &mut DecodeIter<I>) -> Result<Self, Self::Error>
-    where
-        I : ExactSizeIterator<Item = u8>
-    { Ok(Self(<VarInt<u32>>::decode(iter)?.0)) }
-}
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, NetEncode, NetDecode)]
+pub struct CharacterId(
+    #[netzer(format = "Leb128", convert = "VarInt<u32>")]
+    pub u32
+);

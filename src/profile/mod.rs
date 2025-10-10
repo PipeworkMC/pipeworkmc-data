@@ -3,13 +3,9 @@
 
 use crate::{
     bounded_string::BoundedString,
-    uuid::Uuid,
-    varint::VarInt
+    uuid::Uuid
 };
-use pipeworkmc_codec::encode::{
-    PacketEncode,
-    EncodeBuf
-};
+use netzer::prelude::*;
 use serde::Deserialize as Deser;
 
 

@@ -11,10 +11,6 @@ generated = [ ]
 unused_parens = "allow"
 missing_docs  = "deny"
 
-
-[dependencies.pipeworkmc-codec]
-path = "../pipeworkmc-codec"
-
 # ECS
 
 [dependencies.bevy_ecs]
@@ -22,6 +18,11 @@ version  = "0.17"
 optional = true
 
 # Serialisation & Zeroise
+
+[dependencies.netzer]
+git      = "https://github.com/PipeworkMC/netzer"
+branch   = "main"
+features = [ "derive" ]
 
 [dependencies.cesu8]
 version = "1.1"
@@ -40,3 +41,9 @@ features = [ "serde" ]
 
 [dependencies.zeroize]
 version = "1.8"
+
+# Values
+
+[dependencies.uuid]
+version  = "1.18"
+features = [ "v3", "serde" ]

@@ -57,8 +57,8 @@ pub mod version;
 pub mod wolf_variant;
 pub mod wolf_sound_variant;
 pub mod worldgen;
-pub use pipeworkmc_codec::uuid;
-pub use pipeworkmc_codec::varint;
+pub use uuid;
+pub use netzer::varint::VarInt;
 
 pub use syndebug;
 pub use disqualified;
@@ -74,3 +74,35 @@ pub(crate) fn is_default<T>(value : &T) -> bool
 where
     T : Default + PartialEq
 { *value == T::default() }
+
+
+#[non_exhaustive]
+pub struct Minecraft;
+impl netzer::NetFormat for Minecraft { }
+macro_rules! impl_netendecode_minecraft_for {
+    ( $ty:ty $(,)? ) => {
+        impl netzer::NetEncode<Minecraft> for $ty {
+            #[inline(always)]
+            fn encode<W : netzer::AsyncWrite>(&self, w : W) -> impl Future<Output = netzer::Result> {
+                <$ty as netzer::NetEncode::<netzer::numeric::BigEndian>>::encode(self, w)
+            }
+        }
+        impl netzer::NetDecode<Minecraft> for $ty {
+            #[inline(always)]
+            fn decode<R : netzer::AsyncRead>(r : R) -> impl Future<Output = netzer::Result<Self>> {
+                <$ty as netzer::NetDecode::<netzer::numeric::BigEndian>>::decode(r)
+            }
+        }
+    };
+}
+impl_netendecode_minecraft_for!(bool);
+impl_netendecode_minecraft_for!(u8);
+impl_netendecode_minecraft_for!(i8);
+impl_netendecode_minecraft_for!(u16);
+impl_netendecode_minecraft_for!(i16);
+impl_netendecode_minecraft_for!(u32);
+impl_netendecode_minecraft_for!(i32);
+impl_netendecode_minecraft_for!(u64);
+impl_netendecode_minecraft_for!(i64);
+impl_netendecode_minecraft_for!(u128);
+impl_netendecode_minecraft_for!(i128);

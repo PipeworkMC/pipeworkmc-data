@@ -1,16 +1,23 @@
 //! `u8`-encoded angles.
 
 
+use crate::Minecraft;
 use core::f64::consts::TAU;
-use pipeworkmc_codec::encode::{
-    PacketEncode,
-    EncodeBuf
-};
+use netzer::prelude::*;
 
 
 /// An angle encoded as a `u8`.
-#[derive(Clone, Copy, PartialEq, PartialOrd, Debug)]
-pub struct Angle(f64);
+#[derive(Clone, Copy, PartialEq, PartialOrd, Debug, NetEncode, NetDecode)]
+pub struct Angle(
+    #[netzer(encode_with = "encode_angle", decode_with = "decode_angle")]
+    f64
+);
+async fn encode_angle<W : netzer::AsyncWrite>(v : &f64, w : W) -> netzer::Result {
+    <u8 as NetEncode<Minecraft>>::encode(&((*v * 256.0) as u8), w).await
+}
+async fn decode_angle<R : netzer::AsyncRead>(r : R) -> netzer::Result<f64> {
+    Ok((<u8 as NetDecode<Minecraft>>::decode(r).await? as f64) / 256.0)
+}
 
 impl Angle {
 
@@ -41,17 +48,5 @@ impl Angle {
     /// Returns the inner value in degrees.
     #[inline]
     pub fn to_degrees(&self) -> f64 { self.0 / 360.0 }
-
-}
-
-unsafe impl PacketEncode for Angle {
-
-    #[inline]
-    fn encode_len(&self) -> usize { 1 }
-
-    #[inline]
-    unsafe fn encode(&self, buf : &mut EncodeBuf) { unsafe {
-        ((self.0 * 256.0) as u8).encode(buf);
-    } }
 
 }

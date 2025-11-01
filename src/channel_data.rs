@@ -1,23 +1,12 @@
 //! Modded channels for custom data.
 
 
-use crate::ident::{
-    Ident,
-    IdentDecodeError
+use crate::{
+    Minecraft,
+    ident::Ident
 };
-use pipeworkmc_codec::{
-    decode::{
-        PacketDecode,
-        DecodeIter,
-        string::StringDecodeError
-    },
-    encode::{
-        PacketEncode,
-        EncodeBuf
-    }
-};
-use core::fmt::{ self, Display, Formatter };
 use std::borrow::Cow;
+use netzer::prelude::*;
 
 
 const CHANNEL_BRAND : Ident = Ident::new("minecraft:brand");
@@ -41,61 +30,29 @@ pub enum ChannelData<'l> {
 }
 
 
-impl PacketDecode for ChannelData<'_> {
-    type Error = ChannelDataDecodeError;
-
-    fn decode<I>(iter : &mut DecodeIter<I>) -> Result<Self, Self::Error>
-    where
-        I : ExactSizeIterator<Item = u8>
-    {
-        let channel = Ident::decode(iter).map_err(ChannelDataDecodeError::Channel)?;
-        Ok(if (channel == CHANNEL_BRAND) {
-            Self::Brand { brand : Cow::Owned(<_>::decode(iter).map_err(ChannelDataDecodeError::Brand)?) }
-        } else {
-            Self::Custom { channel, data : Cow::Owned(iter.collect::<Vec<_>>().to_vec()) }
-        })
+impl NetEncode<Minecraft> for ChannelData<'_> {
+    async fn encode<W : netzer::AsyncWrite>(&self, mut w : W) -> netzer::Result {
+        match (self) {
+            ChannelData::Brand { brand } => {
+                <Ident as NetEncode<Minecraft>>::encode(&CHANNEL_BRAND, &mut w).await?;
+                <str as NetEncode<Minecraft>>::encode(brand, w).await?;
+            },
+            ChannelData::Custom { channel, data } => {
+                <Ident as NetEncode<Minecraft>>::encode(channel, &mut w).await?;
+                w.write_all(data).await?;
+            }
+        }
+        Ok(())
     }
 }
 
-unsafe impl PacketEncode for ChannelData<'_> {
-
-    fn encode_len(&self) -> usize { match (self) {
-        Self::Brand { brand } => {
-            CHANNEL_BRAND.encode_len()
-            + brand.encode_len()
-        },
-        Self::Custom { channel, data } => {
-            channel.encode_len()
-            + data.len()
-        }
-    } }
-
-    unsafe fn encode(&self, buf : &mut EncodeBuf) { unsafe { match (self) {
-        Self::Brand { brand } => {
-            CHANNEL_BRAND.encode(buf);
-            brand.encode(buf);
-        },
-        Self::Custom { channel, data } => {
-            channel.encode(buf);
-            buf.write_slice(data);
-        }
-    } } }
-
-}
-
-
-/// Returned by packet decoders when a `ChannelData` was not decoded successfully.
-#[derive(Debug)]
-pub enum ChannelDataDecodeError {
-    /// The channel ID failed to decode.
-    Channel(IdentDecodeError),
-    /// A `minecraft:brand` payload failed to decode.
-    Brand(StringDecodeError)
-}
-
-impl Display for ChannelDataDecodeError {
-    fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result { match (self) {
-        Self::Channel(err) => write!(f, "channel {err}"),
-        Self::Brand(err)   => write!(f, "brand {err}")
-    } }
+impl NetDecode<Minecraft> for ChannelData<'_> {
+    async fn decode<R : netzer::AsyncRead>(mut r : R) -> netzer::Result<Self> {
+        let channel = <Ident as NetDecode<Minecraft>>::decode(&mut r).await?;
+        Ok(if (channel == CHANNEL_BRAND) {
+            Self::Brand { brand : <Cow<'_, str> as NetDecode<Minecraft>>::decode(r).await? }
+        } else {
+            todo!()
+        })
+    }
 }

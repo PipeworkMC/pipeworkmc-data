@@ -1,18 +1,11 @@
 //! Namespaced resource identifiers.
 
 
-use pipeworkmc_codec::{
-    decode::{
-        PacketDecode,
-        DecodeIter,
-        string::StringDecodeError
-    },
-    encode::{
-        PacketEncode,
-        EncodeBuf
-    }
+use crate::Minecraft;
+use core::{
+    error::Error as StdError,
+    fmt::{ self, Display, Debug, Formatter }
 };
-use core::fmt::{ self, Display, Debug, Formatter };
 use std::borrow::Cow;
 use serde::{
     Serialize as Ser,
@@ -21,6 +14,7 @@ use serde::{
     Deserializer as Deserer,
     de::Error as _
 };
+use netzer::prelude::*;
 use syndebug::SynDebug;
 
 
@@ -249,31 +243,18 @@ impl<'de> Deser<'de> for Ident {
 }
 
 
-impl PacketDecode for Ident {
-    type Error = IdentDecodeError;
-
-    fn decode<I>(iter : &mut DecodeIter<I>) -> Result<Self, Self::Error>
-    where
-        I : ExactSizeIterator<Item = u8>
-    {
-        let s = <String>::decode(iter).map_err(IdentDecodeError::String)?;
-        Self::try_from(s).map_err(IdentDecodeError::Validate)
+impl NetEncode<Minecraft> for Ident {
+    async fn encode<W : netzer::AsyncWrite>(&self, w : W) -> netzer::Result {
+        <str as NetEncode<Minecraft>>::encode(&*self.joined, w).await
+    }
+}
+impl NetDecode<Minecraft> for Ident {
+    async fn decode<R : netzer::AsyncRead>(r : R) -> netzer::Result<Self> {
+        let s = <String as NetDecode<Minecraft>>::decode(r).await?;
+        Ok(Self::try_from(s)?)
     }
 }
 
-unsafe impl PacketEncode for Ident {
-
-    #[inline]
-    fn encode_len(&self) -> usize {
-        self.joined.encode_len()
-    }
-
-    #[inline]
-    unsafe fn encode(&self, buf : &mut EncodeBuf) { unsafe {
-        self.joined.encode(buf)
-    } }
-
-}
 
 
 /// Returned by [`Ident`] constructors when invalid parameters are provided.
@@ -296,18 +277,4 @@ impl Display for IdentValidateError {
         Self::NoSeparator    => write!(f, "missing separator character")
     } }
 }
-
-/// Returned by packet decoders when an `Ident` was not decoded successfully.
-#[derive(Debug)]
-pub enum IdentDecodeError {
-    /// The read data was not a valid string.
-    String(StringDecodeError),
-    /// The string was not a valid identifier.
-    Validate(IdentValidateError)
-}
-impl Display for IdentDecodeError {
-    fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result { match (self) {
-        Self::String(err)   => write!(f, "{err}"),
-        Self::Validate(err) => write!(f, "{err}")
-    } }
-}
+impl StdError for IdentValidateError { }

@@ -2,6 +2,7 @@
 
 
 use crate::{
+    Minecraft,
     bounded_string::BoundedString,
     uuid::Uuid
 };
@@ -36,76 +37,20 @@ pub struct AccountProperty {
 }
 
 
-unsafe impl PacketEncode for AccountProfile {
-
-    fn encode_len(&self) -> usize {
-        self.uuid.encode_len()
-        + self.username.encode_len()
-        + KeyedAccountProperties([
-            KeyedAccountProperty { key : "textures", property : self.skin.as_ref() }
-        ]).encode_len()
+impl NetEncode<Minecraft> for AccountProfile {
+    async fn encode<W : netzer::AsyncWrite>(&self, mut w : W) -> netzer::Result {
+        <Uuid as NetEncode<Minecraft>>::encode(&self.uuid, &mut w).await?;
+        <BoundedString<16> as NetEncode<Minecraft>>::encode(&self.username, &mut w).await?;
+        let properties = [
+            ("textures", self.skin.as_ref())
+        ];
+        let property_count = properties.iter().filter(|(_, p,)| p.is_some()).count();
+        <VarInt<u32> as NetEncode<Minecraft>>::encode(&VarInt(property_count as u32), &mut w).await?;
+        for (key, property,) in properties { if let Some(property) = property {
+            <str as NetEncode<Minecraft>>::encode(key, &mut w).await?;
+            <str as NetEncode<Minecraft>>::encode(&property.value, &mut w).await?;
+            <Option<String> as NetEncode<Minecraft>>::encode(&property.sig, &mut w).await?;
+        } }
+        Ok(())
     }
-
-    unsafe fn encode(&self, buf : &mut EncodeBuf) { unsafe {
-        self.uuid.encode(buf);
-        self.username.encode(buf);
-        KeyedAccountProperties([
-            KeyedAccountProperty { key : "textures", property : self.skin.as_ref() }
-        ]).encode(buf);
-    } }
-
-}
-
-
-struct KeyedAccountProperties<'l> ([KeyedAccountProperty<'l>; 1]);
-
-unsafe impl PacketEncode for KeyedAccountProperties<'_> {
-
-    fn encode_len(&self) -> usize {
-        let len = self.0.iter().filter(|p| p.property.is_some()).count();
-        VarInt::<u32>(len as u32).encode_len()
-        + self.0.iter().map(|p| p.encode_len()).sum::<usize>()
-    }
-
-    unsafe fn encode(&self, buf : &mut EncodeBuf) { unsafe {
-        let len = self.0.iter().filter(|p| p.property.is_some()).count();
-        VarInt::<u32>(len as u32).encode(buf);
-        for p in &self.0 {
-            p.encode(buf);
-        }
-    } }
-
-}
-
-
-struct KeyedAccountProperty<'l> {
-    key      : &'static str,
-    property : Option<&'l AccountProperty>
-}
-
-unsafe impl PacketEncode for KeyedAccountProperty<'_> {
-
-    fn encode_len(&self) -> usize {
-        if let Some(property) = self.property {
-            self.key.encode_len()
-            + property.value.encode_len()
-            + property.sig.encode_len()
-        } else { 0 }
-    }
-
-    unsafe fn encode(&self, buf : &mut EncodeBuf) { unsafe {
-        if let Some(property) = self.property {
-            self.key.encode(buf);
-            property.value.encode(buf);
-            property.sig.encode(buf);
-        }
-    } }
-
-}
-
-
-#[derive(Deser)]
-enum AccountPropertyKey {
-    #[serde(rename = "textures")]
-    Skin
 }

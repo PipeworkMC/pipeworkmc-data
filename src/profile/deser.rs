@@ -1,7 +1,6 @@
 use super::{
     AccountProfile,
-    AccountProperty,
-    AccountPropertyKey
+    AccountProperty
 };
 use core::fmt::{ self, Formatter };
 use serde::{
@@ -136,4 +135,10 @@ struct KeyedAccountProperty {
     key      : AccountPropertyKey,
     #[serde(flatten)]
     property : AccountProperty
+}
+
+#[derive(Deser)]
+enum AccountPropertyKey {
+    #[serde(rename = "textures")]
+    Skin
 }

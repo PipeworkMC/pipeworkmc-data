@@ -1,30 +1,16 @@
 //! Client settings.
 
 
-use crate::{
-    bounded_string::{
-        BoundedString,
-        BoundedStringDecodeError
-    },
-    varint::{
-        VarInt,
-        VarIntDecodeError
-    }
-};
-use pipeworkmc_codec::decode::{
-    PacketDecode,
-    DecodeIter,
-    IncompleteDecodeError,
-    num::NonZeroDecodeError
-};
+use crate::bounded_string::BoundedString;
 use core::{
-    fmt::{ self, Debug, Display, Formatter },
+    fmt::{ self, Debug, Formatter },
     num::NonZeroU8
 };
+use netzer::prelude::*;
 
 
 /// Client settings.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, NetEncode, NetDecode)]
 #[cfg_attr(feature = "bevy", derive(bevy_ecs::component::Component))]
 pub struct ClientInfo {
     /// Selected language code.
@@ -62,19 +48,21 @@ impl Default for ClientInfo {
 
 
 /// Enable chat message types.
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, NetEncode, NetDecode)]
+#[netzer(ordinal, convert = "VarInt<u32>", try_from)]
+#[repr(u8)]
 pub enum ChatMode {
     /// Chat is fully enabled.
-    Enabled,
+    Enabled      = 0,
     /// Only command feedback is shown.
-    CommandsOnly,
+    CommandsOnly = 1,
     /// All chat is hidden.
-    Hidden
+    Hidden       = 2
 }
 
 
 /// Skin layers to display.
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, NetEncode, NetDecode)]
 #[repr(transparent)]
 pub struct SkinLayers(u8);
 impl SkinLayers {
@@ -165,92 +153,14 @@ impl Debug for SkinLayers {
 
 
 /// Amount of particles which will be displayed.
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, NetEncode, NetDecode)]
+#[netzer(ordinal, convert = "VarInt<u32>", try_from)]
+#[repr(u8)]
 pub enum ParticleStatus {
     /// All particles shown.
-    All,
+    All       = 0,
     /// Decreased particles shown.
-    Decreased,
+    Decreased = 1,
     /// Minimal particles shown.
-    Minimal
-}
-
-
-impl PacketDecode for ClientInfo {
-    type Error = ClientInfoDecodeError;
-
-    fn decode<I>(iter : &mut DecodeIter<I>) -> Result<Self, Self::Error>
-    where
-        I : ExactSizeIterator<Item = u8>
-    { Ok(Self {
-        locale             : <_>::decode(iter).map_err(ClientInfoDecodeError::Locale)?,
-        view_dist          : <_>::decode(iter).map_err(ClientInfoDecodeError::ViewDist)?,
-        chat_mode          : match (*<VarInt<u32>>::decode(iter).map_err(ClientInfoDecodeError::ChatMode)?) {
-            0 => ChatMode::Enabled,
-            1 => ChatMode::CommandsOnly,
-            2 => ChatMode::Hidden,
-            v => { return Err(ClientInfoDecodeError::UnknownChatMode(v))? }
-        },
-        chat_colours       : <_>::decode(iter).map_err(ClientInfoDecodeError::ChatColours)?,
-        skin_layers        : SkinLayers(<_>::decode(iter).map_err(ClientInfoDecodeError::SkinFlags)?),
-        left_handed        : match (*<VarInt<u32>>::decode(iter).map_err(ClientInfoDecodeError::MainHand)?) {
-            0 => true,
-            1 => false,
-            v => { return Err(ClientInfoDecodeError::UnknownMainHand(v))? }
-        },
-        text_filtered      : <_>::decode(iter).map_err(ClientInfoDecodeError::TextFiltered)?,
-        allow_motd_listing : <_>::decode(iter).map_err(ClientInfoDecodeError::AllowMotdListing)?,
-        particle_status    : match (*<VarInt<u32>>::decode(iter).map_err(ClientInfoDecodeError::ParticleStatus)?) {
-            0 => ParticleStatus::All,
-            1 => ParticleStatus::Decreased,
-            2 => ParticleStatus::Minimal,
-            v => { return Err(ClientInfoDecodeError::UnknownParticleStatus(v))? }
-        },
-    }) }
-}
-
-
-/// Returned by packet decoders when a `ClientInfo` was not decoded successfully.
-#[derive(Debug)]
-pub enum ClientInfoDecodeError {
-    /// The locale failed to decode.
-    Locale(BoundedStringDecodeError),
-    /// The view distance failed to decode.
-    ViewDist(NonZeroDecodeError<u8>),
-    /// The chat mode failed to decode.
-    ChatMode(VarIntDecodeError),
-    /// The chat mode was not valid.
-    UnknownChatMode(u32),
-    /// The chat colours setting failed to decode.
-    ChatColours(IncompleteDecodeError),
-    /// The skin flags failed to decode.
-    SkinFlags(IncompleteDecodeError),
-    /// The main hand setting failed to decode.
-    MainHand(VarIntDecodeError),
-    /// The main hand was not valid.
-    UnknownMainHand(u32),
-    /// The text filtering setting failed to decode.
-    TextFiltered(IncompleteDecodeError),
-    /// The server listing setting failed to decode.
-    AllowMotdListing(IncompleteDecodeError),
-    /// The particle amount setting failed to decode.
-    ParticleStatus(VarIntDecodeError),
-    /// The particle amount was not valid.
-    UnknownParticleStatus(u32)
-}
-impl Display for ClientInfoDecodeError {
-    fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result { match (self) {
-        Self::Locale(err)              => write!(f, "locale {err}"),
-        Self::ViewDist(err)            => write!(f, "view dist {err}"),
-        Self::ChatMode(err)            => write!(f, "chat mode {err}"),
-        Self::UnknownChatMode(v)       => write!(f, "unknown chat mode {v}"),
-        Self::ChatColours(err)         => write!(f, "chat colours {err}"),
-        Self::SkinFlags(err)           => write!(f, "skin flags {err}"),
-        Self::MainHand(err)            => write!(f, "main hand {err}"),
-        Self::UnknownMainHand(v)       => write!(f, "unknown main hand {v}"),
-        Self::TextFiltered(err)        => write!(f, "text filtered {err}"),
-        Self::AllowMotdListing(err)    => write!(f, "allow MOTD listing {err}"),
-        Self::ParticleStatus(err)      => write!(f, "particle status {err}"),
-        Self::UnknownParticleStatus(v) => write!(f, "unknown particle status {v}")
-    } }
+    Minimal   = 2
 }

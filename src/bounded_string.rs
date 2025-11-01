@@ -1,27 +1,14 @@
 //! No-alloc string with maximum length.
 
 
-use crate::varint::{
-    VarInt,
-    VarIntDecodeError
-};
-use pipeworkmc_codec::{
-    decode::{
-        PacketDecode,
-        DecodeIter,
-        IncompleteDecodeError
-    },
-    encode::{
-        PacketEncode,
-        EncodeBuf
-    }
-};
+use crate::Minecraft;
 use core::{
+    error::Error as StdError,
     fmt::{ self, Debug, Display, Formatter },
     ops::Deref,
     ptr
 };
-use std::str::Utf8Error;
+use netzer::prelude::*;
 use serde::{
     ser::{
         Serialize as Ser,
@@ -54,51 +41,42 @@ impl<const MAX_LEN : usize> BoundedString<MAX_LEN> {
     }
 }
 
-impl<const MAX_LEN : usize> PacketDecode for BoundedString<MAX_LEN> {
-    type Error = BoundedStringDecodeError;
-
-    fn decode<I>(iter : &mut DecodeIter<I>) -> Result<Self, Self::Error>
-    where
-        I : ExactSizeIterator<Item = u8>
-    {
-        let length = *VarInt::<u32>::decode(iter).map_err(BoundedStringDecodeError::Length)? as usize;
-        if (length > MAX_LEN) {
-            return Err(BoundedStringDecodeError::TooLong(TooLong { len : length, max : MAX_LEN }));
-        }
-        let mut bytes     = [0u8; MAX_LEN];
-        let     bytes_buf = &mut bytes[0..length];
-        iter.read_buf(bytes_buf)?;
-        _ = str::from_utf8(bytes_buf).map_err(BoundedStringDecodeError::Utf8)?;
-        Ok(Self { data : bytes, len : length })
+/// The string was too long.
+#[derive(Debug)]
+pub struct BoundedStringTooLong(pub usize);
+impl StdError for BoundedStringTooLong { }
+impl Display for BoundedStringTooLong {
+    fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "leb128 too long")
     }
 }
 
-unsafe impl<const MAX_LEN : usize> PacketEncode for BoundedString<MAX_LEN> {
-
-    #[inline]
-    fn encode_len(&self) -> usize {
-        let s = unsafe { str::from_utf8_unchecked(&self.data[0..self.len]) };
-        s.encode_len()
+impl<const MAX_LEN : usize> NetEncode<Minecraft> for BoundedString<MAX_LEN> {
+    async fn encode<W : netzer::AsyncWrite>(&self, w : W) -> netzer::Result {
+        <str as NetEncode<Minecraft>>::encode(self, w).await
     }
+}
 
-    #[inline]
-    unsafe fn encode(&self, buf : &mut EncodeBuf) { unsafe {
-        let s = str::from_utf8_unchecked(&self.data[0..self.len]);
-        s.encode(buf);
-    } }
-
+impl<const MAX_LEN : usize> NetDecode<Minecraft> for BoundedString<MAX_LEN> {
+    async fn decode<R : netzer::AsyncRead>(mut r : R) -> netzer::Result<Self> {
+        let len = usize::try_from(<VarInt<u32> as NetDecode<Minecraft>>::decode(&mut r).await?.0)?;
+        if (len > MAX_LEN) {
+            return Err(BoundedStringTooLong(len).into());
+        }
+        let mut out = BoundedString { data : [0u8; MAX_LEN], len };
+        let     buf = &mut out.data[..len];
+        r.read_exact(buf).await?;
+        _ = str::from_utf8(buf)?; // Check that the string is valid UTF8.
+        Ok(out)
+    }
 }
 
 
 impl<const MAX_LEN : usize> TryFrom<&str> for BoundedString<MAX_LEN> {
-    type Error = TooLong;
-
+    type Error = BoundedStringTooLong;
     fn try_from(value : &str) -> Result<Self, Self::Error> {
         if (value.len() > MAX_LEN) {
-            Err(TooLong {
-                len : value.len(),
-                max : MAX_LEN
-            })
+            Err(BoundedStringTooLong(value.len()))
         } else {
             let mut bytes = [0u8; MAX_LEN];
             unsafe { ptr::copy_nonoverlapping(
@@ -126,10 +104,8 @@ impl<'de, const MAX_LEN : usize> Deser<'de> for BoundedString<MAX_LEN> {
     where
         D : Deserer<'de>
     {
-        match (Self::try_from(<&str>::deserialize(deserer)?)) {
-            Ok(s)                     => Ok(s),
-            Err(TooLong { len, max }) => Err(D::Error::custom(format!("BoundedString max length of {max} exceeded: {len}")))
-        }
+        Self::try_from(<&str>::deserialize(deserer)?)
+            .map_err(D::Error::custom)
     }
 }
 
@@ -155,40 +131,4 @@ impl<const MAX_LEN : usize> Display for BoundedString<MAX_LEN> {
     fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result {
         Display::fmt(self as &str, f)
     }
-}
-
-
-/// Returned by packet decoders when a `BoundedString` was not decoded successfully.
-#[derive(Debug)]
-pub enum BoundedStringDecodeError {
-    /// The length of the string failed to decode.
-    Length(VarIntDecodeError),
-    /// There were not enough bytes.
-    Incomplete(IncompleteDecodeError),
-    /// The string length was longer than allowed.
-    TooLong(TooLong),
-    /// The decoded string was not valid UTF8.
-    Utf8(Utf8Error)
-}
-impl From<IncompleteDecodeError> for BoundedStringDecodeError {
-    #[inline]
-    fn from(err : IncompleteDecodeError) -> Self { Self::Incomplete(err) }
-}
-impl Display for BoundedStringDecodeError {
-    fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result { match (self) {
-        Self::Length(err)     => write!(f, "length {err}"),
-        Self::Incomplete(err) => Display::fmt(err, f),
-        Self::TooLong(err)    => write!(f, "length of {} exceeds maximum of {}", err.len, err.max),
-        Self::Utf8(_)         => write!(f, "invalid utf8")
-    } }
-}
-
-
-/// A string was longer than allowed by a `BoundedString`.
-#[derive(Debug)]
-pub struct TooLong {
-    /// The length of the given string.
-    pub len : usize,
-    /// The maximum allowed length.
-    pub max : usize
 }

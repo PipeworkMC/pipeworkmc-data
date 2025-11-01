@@ -2,20 +2,11 @@
 
 
 use crate::{
+    Minecraft,
     chunk_pos::ChunkPos,
     ident::Ident
 };
-use pipeworkmc_codec::{
-    decode::{
-        PacketDecode,
-        DecodeIter,
-        IncompleteDecodeError
-    },
-    encode::{
-        PacketEncode,
-        EncodeBuf
-    }
-};
+use netzer::prelude::*;
 
 
 /// The position of a block in a dimension.
@@ -40,13 +31,20 @@ impl BlockPos {
     } }
 }
 
-impl PacketDecode for BlockPos {
-    type Error = IncompleteDecodeError;
-    fn decode<I>(iter : &mut DecodeIter<I>) -> Result<Self, Self::Error>
-    where
-        I : ExactSizeIterator<Item = u8>
-    {
-        let v = <u64>::decode(iter)?;
+impl NetEncode<Minecraft> for BlockPos {
+    async fn encode<W : netzer::AsyncWrite>(&self, w : W) -> netzer::Result {
+        <u64 as NetEncode<Minecraft>>::encode(
+            &((((self.x as u64) & 0x3FFFFFF) << 38)
+                | (((self.z as u64) & 0x3FFFFFF) << 12)
+                | ((self.y as u64) & 0xFFF)),
+            w
+        ).await
+    }
+}
+
+impl NetDecode<Minecraft> for BlockPos {
+    async fn decode<R : netzer::AsyncRead>(r : R) -> netzer::Result<Self> {
+        let v = <u64 as NetDecode<Minecraft>>::decode(r).await?;
         Ok(Self {
             x : ((v >> 38) & 0x3FFFFFF) as i32,
             z : ((v >> 12) & 0x3FFFFFF) as i32,
@@ -55,39 +53,12 @@ impl PacketDecode for BlockPos {
     }
 }
 
-unsafe impl PacketEncode for BlockPos {
-
-    #[inline]
-    fn encode_len(&self) -> usize { 8 }
-
-    unsafe fn encode(&self, buf : &mut EncodeBuf) { unsafe {
-        ((((self.x as u64) & 0x3FFFFFF) << 38) | (((self.z as u64) & 0x3FFFFFF) << 12) | ((self.y as u64) & 0xFFF))
-            .encode(buf);
-    } }
-
-}
-
 
 /// The dimension and position of a block.
-#[derive(Clone, PartialEq, Eq, Hash, Debug)]
+#[derive(Clone, PartialEq, Eq, Hash, Debug, NetEncode, NetDecode)]
 pub struct DimBlockPos {
     /// The dimension.
     pub dim : Ident,
     /// The position.
     pub pos : BlockPos
-}
-
-unsafe impl PacketEncode for DimBlockPos {
-
-    #[inline]
-    fn encode_len(&self) -> usize {
-        self.dim.encode_len()
-        + self.pos.encode_len()
-    }
-
-    unsafe fn encode(&self, buf : &mut EncodeBuf) { unsafe {
-        self.dim.encode(buf);
-        self.pos.encode(buf);
-    } }
-
 }

@@ -1,45 +1,35 @@
 //! Player selected hotbar slots.
 
 
-use pipeworkmc_codec::decode::{
-    PacketDecode,
-    DecodeIter,
-    IncompleteDecodeError
+use crate::Minecraft;
+use core::{
+    error::Error as StdError,
+    fmt::{ self, Display, Formatter }
 };
-use core::fmt::{ self, Display, Formatter };
+use netzer::prelude::*;
 
 
 /// A player's selected hotbar slot.
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default, NetEncode, NetDecode)]
 #[cfg_attr(feature = "bevy", derive(bevy_ecs::component::Component))]
 #[repr(transparent)]
-pub struct SelectedHotbar(u8);
-
-
-impl PacketDecode for SelectedHotbar {
-    type Error = SelectedHotbarDecodeError;
-
-    fn decode<I>(iter : &mut DecodeIter<I>) -> Result<Self, Self::Error>
-    where
-        I : ExactSizeIterator<Item = u8>
-    {
-        let v = <u16>::decode(iter).map_err(SelectedHotbarDecodeError::Slot)?;
-        if (v < 9) { Ok(Self(v as u8)) }
-        else { Err(SelectedHotbarDecodeError::BadSlot(v)) }
-    }
+pub struct SelectedHotbar(
+    #[netzer(convert = "u16", decode_with = "decode_slot", try_from)]
+    u8
+);
+async fn decode_slot<R : netzer::AsyncRead>(r : R) -> netzer::Result<u16> {
+    let v = <u16 as NetDecode<Minecraft>>::decode(r).await?;
+    if (v >= 9) { return Err(BadHotbarSlot(v).into()); }
+    Ok(v)
 }
 
-/// Returned by packet decoders when a `SelectedHotbar` was not decoded successfully.
+
+/// The hotbar slot was out of range.
 #[derive(Debug)]
-pub enum SelectedHotbarDecodeError {
-    /// The slot failed to decode.
-    Slot(IncompleteDecodeError),
-    /// An unknown slot was found.
-    BadSlot(u16)
-}
-impl Display for SelectedHotbarDecodeError {
-    fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result { match (self) {
-        Self::Slot(err)  => write!(f, "slot {err}"),
-        Self::BadSlot(v) => write!(f, "bad slot {v}")
-    } }
+pub struct BadHotbarSlot(u16);
+impl StdError for BadHotbarSlot { }
+impl Display for BadHotbarSlot {
+    fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "bad hotbar slot `{}`", self.0)
+    }
 }

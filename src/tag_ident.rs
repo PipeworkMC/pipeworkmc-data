@@ -1,18 +1,13 @@
 //! Namespaced resource identifier tags.
 
 
-use pipeworkmc_codec::{
-    decode::{
-        PacketDecode,
-        DecodeIter,
-        string::StringDecodeError
-    },
-    encode::{
-        EncodeBuf, PacketEncode
-    }
+use crate::Minecraft;
+use core::{
+    error::Error as StdError,
+    fmt::{ self, Display, Debug, Formatter }
 };
-use core::fmt::{ self, Display, Debug, Formatter };
 use std::borrow::Cow;
+use netzer::prelude::*;
 use serde::{
     Serialize as Ser,
     Serializer as Serer,
@@ -250,30 +245,16 @@ impl<'de> Deser<'de> for TagIdent {
 }
 
 
-impl PacketDecode for TagIdent {
-    type Error = TagIdentDecodeError;
-
-    fn decode<I>(iter : &mut DecodeIter<I>) -> Result<Self, Self::Error>
-    where
-        I : ExactSizeIterator<Item = u8>
-    {
-        let s = <String>::decode(iter).map_err(TagIdentDecodeError::String)?;
-        Self::try_from(s).map_err(TagIdentDecodeError::Validate)
+impl NetEncode<Minecraft> for TagIdent {
+    async fn encode<W : netzer::AsyncWrite>(&self, w : W) -> netzer::Result {
+        <str as NetEncode<Minecraft>>::encode(&*self.joined, w).await
     }
 }
-
-unsafe impl PacketEncode for TagIdent {
-
-    #[inline]
-    fn encode_len(&self) -> usize {
-        self.joined.encode_len()
+impl NetDecode<Minecraft> for TagIdent {
+    async fn decode<R : netzer::AsyncRead>(r : R) -> netzer::Result<Self> {
+        let s = <String as NetDecode<Minecraft>>::decode(r).await?;
+        Ok(Self::try_from(s)?)
     }
-
-    #[inline]
-    unsafe fn encode(&self, buf : &mut EncodeBuf) { unsafe {
-        self.joined.encode(buf)
-    } }
-
 }
 
 
@@ -291,6 +272,7 @@ pub enum TagIdentValidateError {
     /// The tag identifier is missing a separator (`:`).
     NoSeparator
 }
+impl StdError for TagIdentValidateError {}
 impl Display for TagIdentValidateError {
     fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result { match (self) {
         Self::NotAscii       => write!(f, "contains non-ASCII characters"),
@@ -298,20 +280,5 @@ impl Display for TagIdentValidateError {
         Self::EmptyComponent => write!(f, "contains empty component"),
         Self::BadChar(ch)    => write!(f, "component contains invalid character {ch:?}"),
         Self::NoSeparator    => write!(f, "missing `:` character")
-    } }
-}
-
-/// Returned by packet decoders when a `TagIdent` was not decoded successfully.
-#[derive(Debug)]
-pub enum TagIdentDecodeError {
-    /// The read data was not a valid string.
-    String(StringDecodeError),
-    /// The string was not a valid tag identifier.
-    Validate(TagIdentValidateError)
-}
-impl Display for TagIdentDecodeError {
-    fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result { match (self) {
-        Self::String(err)   => write!(f, "{err}"),
-        Self::Validate(err) => write!(f, "{err}")
     } }
 }

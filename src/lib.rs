@@ -61,7 +61,7 @@ pub mod wolf_variant;
 pub mod wolf_sound_variant;
 pub mod worldgen;
 pub use uuid;
-pub use netzer::varint::VarInt;
+pub use netzer::varint;
 
 pub use syndebug;
 pub use disqualified;

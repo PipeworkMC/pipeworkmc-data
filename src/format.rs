@@ -40,6 +40,8 @@ impl_netendecode_minecraft_for!(u64, BigEndian);
 impl_netendecode_minecraft_for!(i64, BigEndian);
 impl_netendecode_minecraft_for!(u128, BigEndian);
 impl_netendecode_minecraft_for!(i128, BigEndian);
+impl_netendecode_minecraft_for!(f32, BigEndian);
+impl_netendecode_minecraft_for!(f64, BigEndian);
 
 impl NetEncode<Minecraft> for Uuid {
     async fn encode<W : netzer::AsyncWrite>(&self, w : W) -> netzer::Result {

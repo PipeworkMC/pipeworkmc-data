@@ -54,6 +54,7 @@ pub mod profile;
 pub mod redacted;
 pub mod registry_entry;
 pub mod selected_hotbar;
+pub mod server_status;
 pub mod tag_ident;
 pub mod text;
 pub mod version;
@@ -63,6 +64,7 @@ pub mod worldgen;
 pub use uuid;
 pub use netzer::varint;
 
+pub use netzer;
 pub use syndebug;
 pub use disqualified;
 

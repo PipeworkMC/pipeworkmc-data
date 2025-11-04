@@ -14,8 +14,9 @@ missing_docs  = "deny"
 # ECS
 
 [dependencies.bevy_ecs]
-version  = "0.17"
-optional = true
+version          = "0.17"
+default-features = false
+optional         = true
 
 # Serialisation & Zeroise
 

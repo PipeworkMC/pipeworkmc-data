@@ -10,10 +10,10 @@
     decl_macro,
 
     // Standard Library
+    maybe_uninit_array_assume_init,
     maybe_uninit_slice
 
 )]
-
 
 mod format;
 pub use format::*;
@@ -57,6 +57,7 @@ pub mod selected_hotbar;
 pub mod server_status;
 pub mod tag_ident;
 pub mod text;
+pub mod unprefixed;
 pub mod version;
 pub mod wolf_variant;
 pub mod wolf_sound_variant;

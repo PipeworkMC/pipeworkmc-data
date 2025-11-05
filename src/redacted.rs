@@ -5,11 +5,13 @@ use core::{
     fmt::{ self, Debug, Display, Formatter },
     mem::{ self, ManuallyDrop }
 };
+use netzer::prelude::*;
 use zeroize::zeroize_flat_type as erase;
 
 
 /// A type which redacts [`Debug`] and [`Display`] implementations,
 ///  and ensures that this type's memory is zeroed on drop.
+#[derive(Clone)]
 #[repr(transparent)]
 pub struct Redacted<T> {
     inner : ManuallyDrop<T>
@@ -80,4 +82,16 @@ impl<T> Drop for Redacted<T> {
         // SAFETY: `self.inner` was dropped in the line above.
         erase((&mut self.inner) as *mut _);
     } }
+}
+
+
+impl<F : netzer::NetFormat, T : NetEncode<F>> NetEncode<F> for Redacted<T> {
+    fn encode<W : netzer::AsyncWrite>(&self, w : W) -> impl Future<Output = netzer::Result> {
+        (unsafe { self.as_ref() }).encode(w)
+    }
+}
+impl<F : netzer::NetFormat, T : NetDecode<F>> NetDecode<F> for Redacted<T> {
+    async fn decode<R : netzer::AsyncRead>(r : R) -> netzer::Result<Self> {
+        Ok(Self::from(T::decode(r).await?))
+    }
 }

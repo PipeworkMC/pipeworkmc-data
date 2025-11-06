@@ -5,9 +5,8 @@ use netzer::prelude::*;
 
 
 /// Resource pack status updates sent by the client.
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, NetEncode)]
-// #[netzer(ordinal, convert = "VarInt<u32>", try_from)]
-#[netzer(ordinal, convert = "VarInt<u32>", try_into)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, NetEncode,  NetDecode)]
+#[netzer(ordinal, convert = "VarInt<u32>", try_into, try_from)]
 #[repr(u8)]
 pub enum PackStatus {
     /// The client has successfully loaded the resource pack.

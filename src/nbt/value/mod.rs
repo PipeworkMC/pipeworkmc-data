@@ -1,182 +1,127 @@
-use core::fmt::{ self, Formatter };
+use crate::Minecraft;
+use super::tag;
 use std::borrow::Cow;
-use serde::de::{
-    Error as DeserError,
-    Deserialize as Deser,
-    Deserializer as Deserer,
-    Visitor,
-    SeqAccess,
-    MapAccess
+use netzer::prelude::*;
+use cesu8::{
+    to_java_cesu8,
+    from_java_cesu8
+};
+use serde::{
+    Serialize as Ser,
+    Deserialize as Deser
 };
 
 
 /// An NBT element.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Ser, Deser)]
+#[serde(untagged)]
 pub enum NbtElement<'l> {
-    /// `()`
-    Unit,
-    /// `i8`
+    /// Byte
     Byte(i8),
-    /// `i16`
+    /// Short
     Short(i16),
-    /// `i32`
+    /// Int
     Int(i32),
-    /// `i64`
+    /// Long
     Long(i64),
-    /// `f32`
+    /// Float
     Float(f32),
-    /// `f64`
+    /// Double
     Double(f64),
-    /// `u8` array.
-    BArray(Cow<'l, [u8]>),
-    /// String.
+    // /// Byte array
+    // BArray(NbtBArray<'l>),
+    /// String
     String(Cow<'l, str>),
-    /// Typed element list.
-    List(Cow<'l, [NbtElement<'l>]>),
-    /// Map
-    Compound(Cow<'l, [(Cow<'l, str>, NbtElement<'l>,)]>),
-    /// `i32` array.
-    IArray(Cow<'l, [i32]>),
-    /// `i64` array.
-    LArray(Cow<'l, [i64]>)
+    // /// List
+    // List(NbtList<'l>),
+    // /// Compound
+    // Compound(Cow<'l, [(Cow<'l, str>, NbtElement<'l>,)]>),
+    // /// Int array
+    // IArray(NbtIArray<'l>),
+    // /// Long array
+    // LArray(NbtLArray<'l>)
 }
 
-impl<'de> Deser<'de> for NbtElement<'de> {
-
-    fn deserialize<D>(deserer : D) -> Result<Self, D::Error>
-    where
-        D : Deserer<'de>
-    {
-        deserer.deserialize_any(NbtElementVisitor)
+impl NetEncode<Minecraft> for NbtElement<'_> {
+    async fn encode<W : netzer::AsyncWrite>(&self, mut w : W) -> netzer::Result {
+        match (self) {
+            NbtElement::Byte(v) => {
+                w.write_all(&[tag::BYTE]).await?;
+                w.write_all(&v.to_be_bytes()).await?;
+            },
+            NbtElement::Short(v) => {
+                w.write_all(&[tag::SHORT]).await?;
+                w.write_all(&v.to_be_bytes()).await?;
+            },
+            NbtElement::Int(v) => {
+                w.write_all(&[tag::INT]).await?;
+                w.write_all(&v.to_be_bytes()).await?;
+            },
+            NbtElement::Long(v) => {
+                w.write_all(&[tag::LONG]).await?;
+                w.write_all(&v.to_be_bytes()).await?;
+            },
+            NbtElement::Float(v) => {
+                w.write_all(&[tag::FLOAT]).await?;
+                w.write_all(&v.to_be_bytes()).await?;
+            },
+            NbtElement::Double(v) => {
+                w.write_all(&[tag::DOUBLE]).await?;
+                w.write_all(&v.to_be_bytes()).await?;
+            },
+            NbtElement::String(v) => {
+                w.write_all(&[tag::STRING]).await?;
+                Self::encode_string(v, w).await?;
+            },
+        }
+        Ok(())
     }
-
+}
+impl NbtElement<'_> {
+    async fn encode_string<W : netzer::AsyncWrite>(v : &str, mut w : W) -> netzer::Result {
+        let jstring = to_java_cesu8(v);
+        w.write_all(&u16::try_from(jstring.len()).unwrap().to_be_bytes()).await?;
+        w.write_all(&jstring).await?;
+        Ok(())
+    }
 }
 
 
-struct NbtElementVisitor;
-
-impl<'de> Visitor<'de> for NbtElementVisitor {
-    type Value = NbtElement<'de>;
-
-    fn expecting(&self, f : &mut Formatter) -> fmt::Result {
-        write!(f, "valid NBT data")
+impl NetDecode<Minecraft> for NbtElement<'_> {
+    async fn decode<R : netzer::AsyncRead>(mut r : R) -> netzer::Result<Self> {
+        let mut tag = [0u8; 1];
+        r.read_exact(&mut tag).await?;
+        let tag = tag[0];
+        Ok(match (tag) {
+            tag::BYTE   => NbtElement::Byte(Self::decode_primitive(r, i8::from_be_bytes).await?),
+            tag::SHORT  => NbtElement::Short(Self::decode_primitive(r, i16::from_be_bytes).await?),
+            tag::INT    => NbtElement::Int(Self::decode_primitive(r, i32::from_be_bytes).await?),
+            tag::LONG   => NbtElement::Long(Self::decode_primitive(r, i64::from_be_bytes).await?),
+            tag::FLOAT  => NbtElement::Float(Self::decode_primitive(r, f32::from_be_bytes).await?),
+            tag::DOUBLE => NbtElement::Double(Self::decode_primitive(r, f64::from_be_bytes).await?),
+            tag::STRING => NbtElement::String(Cow::Owned(Self::decode_string(r).await?)),
+            _ => { return Err("invalid NBT tag".into()); }
+        })
     }
-
-    fn visit_bool<E>(self, v : bool) -> Result<Self::Value, E>
-    where
-        E : DeserError
-    { Ok(NbtElement::Byte(if (v) { 1 } else { 0 })) }
-
-    fn visit_i8<E>(self, v : i8) -> Result<Self::Value, E>
-    where
-        E : DeserError
-    { Ok(NbtElement::Byte(v)) }
-
-    fn visit_i16<E>(self, v : i16) -> Result<Self::Value, E>
-    where
-        E : DeserError
-    { Ok(NbtElement::Short(v)) }
-
-    fn visit_i32<E>(self, v : i32) -> Result<Self::Value, E>
-    where
-        E : DeserError
-    { Ok(NbtElement::Int(v)) }
-
-    fn visit_i64<E>(self, v : i64) -> Result<Self::Value, E>
-    where
-        E : DeserError
-    { Ok(NbtElement::Long(v)) }
-
-    fn visit_u8<E>(self, v : u8) -> Result<Self::Value, E>
-    where
-        E : DeserError
-    { Ok(NbtElement::Byte(v.cast_signed())) }
-
-    fn visit_u16<E>(self, v : u16) -> Result<Self::Value, E>
-    where
-        E : DeserError
-    { Ok(NbtElement::Short(v.cast_signed())) }
-
-    fn visit_u32<E>(self, v : u32) -> Result<Self::Value, E>
-    where
-        E : DeserError
-    { Ok(NbtElement::Int(v.cast_signed())) }
-
-    fn visit_u64<E>(self, v : u64) -> Result<Self::Value, E>
-    where
-        E : DeserError
-    { Ok(NbtElement::Long(v.cast_signed())) }
-
-    fn visit_f32<E>(self, v : f32) -> Result<Self::Value, E>
-    where
-        E : DeserError
-    { Ok(NbtElement::Float(v)) }
-
-    fn visit_f64<E>(self, v : f64) -> Result<Self::Value, E>
-    where
-        E : DeserError
-    { Ok(NbtElement::Double(v)) }
-
-    fn visit_char<E>(self, v : char) -> Result<Self::Value, E>
-    where
-        E : DeserError
-    { Ok(NbtElement::String(Cow::Owned(v.to_string()))) }
-
-    fn visit_str<E>(self, v : &str) -> Result<Self::Value, E>
-    where
-        E : DeserError
-    { Ok(NbtElement::String(Cow::Owned(v.to_string()))) }
-
-    fn visit_borrowed_str<E>(self, v : &'de str) -> Result<Self::Value, E>
-    where
-        E : DeserError
-    { Ok(NbtElement::String(Cow::Borrowed(v))) }
-
-    fn visit_string<E>(self, v : String) -> Result<Self::Value, E>
-    where
-        E : DeserError
-    { Ok(NbtElement::String(Cow::Owned(v))) }
-
-    fn visit_bytes<E>(self, v : &[u8]) -> Result<Self::Value, E>
-    where
-        E : DeserError
-    { Ok(NbtElement::BArray(Cow::Owned(v.to_vec()))) }
-
-    fn visit_borrowed_bytes<E>(self, v : &'de [u8]) -> Result<Self::Value, E>
-    where
-        E : DeserError
-    { Ok(NbtElement::BArray(Cow::Borrowed(v))) }
-
-    fn visit_byte_buf<E>(self, v : Vec<u8>) -> Result<Self::Value, E>
-    where
-        E : DeserError
-    { Ok(NbtElement::BArray(Cow::Owned(v))) }
-
-    fn visit_unit<E>(self) -> Result<Self::Value, E>
-    where
-        E : DeserError
-    { Ok(NbtElement::Unit) }
-
-    fn visit_seq<A>(self, mut seq : A) -> Result<Self::Value, A::Error>
-    where
-        A : SeqAccess<'de>
+}
+impl NbtElement<'_> {
+    async fn decode_primitive<R : netzer::AsyncRead, T, const N : usize, F>(mut r : R, f : F) -> netzer::Result<T>
+    where F : FnOnce([u8; N]) -> T
     {
-        let mut elem = seq.size_hint().map_or_else(Vec::new, Vec::with_capacity);
-        while let Some(v) = seq.next_element()? {
-            elem.push(v);
-        }
-        Ok(NbtElement::List(Cow::Owned(elem)))
+        let mut buf = [0u8; N];
+        r.read_exact(&mut buf).await?;
+        Ok(f(buf))
     }
-
-    fn visit_map<A>(self, mut map : A) -> Result<Self::Value, A::Error>
-    where
-        A : MapAccess<'de>
-    {
-        let mut elem = map.size_hint().map_or_else(Vec::new, Vec::with_capacity);
-        while let Some(e) = map.next_entry::<Cow<'de, str>, NbtElement<'de>>()? {
-            elem.push(e);
-        }
-        Ok(NbtElement::Compound(Cow::Owned(elem)))
+    async fn decode_string<R : netzer::AsyncRead>(mut r : R) -> netzer::Result<String> {
+        let mut len = [0u8; 2];
+        r.read_exact(&mut len).await?;
+        let len = u16::from_be_bytes(len) as usize;
+        let mut buf = Box::new_uninit_slice(len);
+        r.read_exact(unsafe { buf.assume_init_mut() }).await?;
+        let buf = unsafe { buf.assume_init() };
+        Ok(match (from_java_cesu8(&buf)?) {
+            Cow::Owned(v)    => v,
+            Cow::Borrowed(_) => unsafe { String::from_utf8_unchecked(buf.into_vec()) }
+        })
     }
-
 }

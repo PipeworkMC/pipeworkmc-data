@@ -1,4 +1,10 @@
-use core::mem::MaybeUninit;
+use core::{
+    mem::MaybeUninit,
+    num::{
+        NonZero,
+        ZeroablePrimitive
+    }
+};
 use std::borrow::Cow;
 use netzer::prelude::*;
 use netzer::varint::{ VarInt, Leb128 };
@@ -130,5 +136,17 @@ impl<T : NetDecode<Minecraft>, const N : usize> NetDecode<Minecraft> for [T; N] 
         }
         // SAFETY: All items in `v` were written above (len == N).
         Ok(unsafe { MaybeUninit::array_assume_init(v) })
+    }
+}
+
+impl<T : ZeroablePrimitive + NetEncode<Minecraft>> NetEncode<Minecraft> for NonZero<T> {
+    async fn encode<W : netzer::AsyncWrite>(&self, w : W) -> netzer::Result {
+        <T as NetEncode<Minecraft>>::encode(&self.get(), w).await
+    }
+}
+impl<T : ZeroablePrimitive + NetDecode<Minecraft>> NetDecode<Minecraft> for NonZero<T> {
+    async fn decode<R : netzer::AsyncRead>(r : R) -> netzer::Result<Self> {
+        let x = <T as NetDecode<Minecraft>>::decode(r).await?;
+        Self::new(x).ok_or_else(|| "invalid value for nonzero".into())
     }
 }

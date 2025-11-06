@@ -71,7 +71,7 @@ impl<T> Borrow<AllSlice<T>> for AllVec<T> {
 }
 
 impl<T : NetDecode<Minecraft>> NetDecode<Minecraft> for AllVec<T> {
-    async fn decode<R : netzer::AsyncRead>(r : R) -> netzer::Result<Self> {
+    async fn decode<R : netzer::AsyncRead>(_r : R) -> netzer::Result<Self> {
         Err("TODO: AllVec reader".into())
     }
 }

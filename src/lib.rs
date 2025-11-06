@@ -1,6 +1,7 @@
 #![doc = include_str!("../README.md")]
 
 
+#![expect(internal_features)]
 #![feature(
 
     // Language
@@ -11,7 +12,8 @@
 
     // Standard Library
     maybe_uninit_array_assume_init,
-    maybe_uninit_slice
+    maybe_uninit_slice,
+    nonzero_internals
 
 )]
 
